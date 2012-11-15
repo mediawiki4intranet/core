@@ -3225,8 +3225,8 @@ HTML
 			$wgUseTeX ? array(
 				'image'  => $wgLang->getImageFile( 'button-math' ),
 				'id'     => 'mw-editbutton-math',
-				'open'   => "<math>",
-				'close'  => "</math>",
+				'open'   => "<m>",
+				'close'  => "</m>",
 				'sample' => wfMessage( 'math_sample' )->text(),
 				'tip'    => wfMessage( 'math_tip' )->text(),
 				'key'    => 'C'
@@ -3243,7 +3243,7 @@ HTML
 			array(
 				'image'  => $wgLang->getImageFile( 'button-sig' ),
 				'id'     => 'mw-editbutton-signature',
-				'open'   => '--~~~~',
+				'open'   => '~~~~',
 				'close'  => '',
 				'sample' => '',
 				'tip'    => wfMessage( 'sig_tip' )->text(),
