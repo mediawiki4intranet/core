@@ -204,6 +204,11 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 
 			if ( is_null( $resultPageSet ) ) {
 				$vals = $this->extractRowInfo( $row );
+				// <IntraACL>
+				if ( !$vals ) {
+					continue;
+				}
+				// </IntraACL>
 				$fit = $this->getResult()->addValue( array( 'query', $this->getModuleName() ), null, $vals );
 				if ( !$fit ) {
 					$this->setContinueEnumParameter( 'start',
@@ -238,6 +243,11 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 		}
 
 		$title = Title::makeTitle( $row->rc_namespace, $row->rc_title );
+		// <IntraACL>
+		if ( !$title || !$title->userCanRead() ) {
+			return false;
+		}
+		// </IntraACL>
 
 		if ( $this->fld_title ) {
 			ApiQueryBase::addTitleInfo( $vals, $title );

@@ -101,7 +101,7 @@ class ApiQueryLinks extends ApiQueryGeneratorBase {
 			$lb = new LinkBatch;
 			foreach ( $params[$this->titlesParam] as $t ) {
 				$title = Title::newFromText( $t );
-				if ( !$title ) {
+				if ( !$title || !$title->userCanRead() ) {
 					$this->setWarning( "``$t'' is not a valid title" );
 				} else {
 					$lb->addObj( $title );
@@ -163,7 +163,13 @@ class ApiQueryLinks extends ApiQueryGeneratorBase {
 					break;
 				}
 				$vals = array();
-				ApiQueryBase::addTitleInfo( $vals, Title::makeTitle( $row->pl_namespace, $row->pl_title ) );
+				$title = Title::makeTitle( $row->pl_namespace, $row->pl_title );
+				// <IntraACL>
+				if ( !$title->userCanRead() ) {
+					continue;
+				}
+				// </IntraACL>
+				ApiQueryBase::addTitleInfo( $vals, $title );
 				$fit = $this->addPageSubItem( $row->pl_from, $vals );
 				if ( !$fit ) {
 					$this->setContinueEnumParameter( 'continue',

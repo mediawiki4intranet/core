@@ -160,6 +160,11 @@ class ApiQueryAllimages extends ApiQueryGeneratorBase {
 
 			if ( is_null( $resultPageSet ) ) {
 				$file = $repo->newFileFromRow( $row );
+				// <IntraACL>
+				if ( !$file->getTitle()->userCanRead() ) {
+					continue;
+				}
+				// </IntraACL>
 				$info = array_merge( array( 'name' => $row->img_name ),
 					ApiQueryImageInfo::getInfo( $file, $prop, $result ) );
 				self::addTitleInfo( $info, $file->getTitle() );

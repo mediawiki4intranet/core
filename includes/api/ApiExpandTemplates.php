@@ -51,7 +51,9 @@ class ApiExpandTemplates extends ApiBase {
 
 		// Create title for parser
 		$title_obj = Title::newFromText( $params['title'] );
-		if ( !$title_obj ) {
+		// <IntraACL>
+		if ( !$title_obj || !$title_obj->userCanRead() ) {
+		// </IntraACL>
 			$title_obj = Title::newFromText( 'API' ); // default
 		}
 

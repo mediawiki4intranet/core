@@ -85,9 +85,13 @@ class ApiQueryRandom extends ApiQueryGeneratorBase {
 			if ( is_null( $resultPageSet ) ) {
 				// Prevent duplicates
 				if ( !in_array( $row->page_id, $this->pageIDs ) ) {
+					$info = $this->extractRowInfo( $row );
+					if ( !$info ) {
+						continue;
+					}
 					$fit = $this->getResult()->addValue(
 							array( 'query', $this->getModuleName() ),
-							null, $this->extractRowInfo( $row ) );
+							null, $info );
 					if ( !$fit ) {
 						// We can't really query-continue a random list.
 						// Return an insanely high value so
@@ -131,6 +135,11 @@ class ApiQueryRandom extends ApiQueryGeneratorBase {
 
 	private function extractRowInfo( $row ) {
 		$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+		// <IntraACL>
+		if ( !$title->userCanRead() ) {
+			return false;
+		}
+		// </IntraACL>
 		$vals = array();
 		$vals['id'] = intval( $row->page_id );
 		ApiQueryBase::addTitleInfo( $vals, $title );

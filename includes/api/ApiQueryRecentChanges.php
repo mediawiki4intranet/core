@@ -321,6 +321,11 @@ class ApiQueryRecentChanges extends ApiQueryGeneratorBase {
 
 		/* Determine the title of the page that has been changed. */
 		$title = Title::makeTitle( $row->rc_namespace, $row->rc_title );
+		// <IntraACL>
+		if ( !$title->userCanRead() ) {
+			continue;
+		}
+		// </IntraACL>
 
 		/* Our output data. */
 		$vals = array();

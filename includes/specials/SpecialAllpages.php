@@ -336,6 +336,11 @@ class SpecialAllpages extends IncludableSpecialPage {
 				$out = Xml::openElement( 'table', array( 'class' => 'mw-allpages-table-chunk' ) );
 				while( ( $n < $this->maxPerPage ) && ( $s = $res->fetchObject() ) ) {
 					$t = Title::newFromRow( $s );
+// <IntraACL>
+					if ( $t && !$t->userCanReadEx() ) {
+						continue;
+					}
+// </IntraACL>
 					if( $t ) {
 						$link = ( $s->page_is_redirect ? '<div class="allpagesredirect">' : '' ) .
 							$sk->link( $t ) .

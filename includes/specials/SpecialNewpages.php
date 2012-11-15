@@ -305,6 +305,11 @@ class SpecialNewpages extends IncludableSpecialPage {
 		$dm = $wgLang->getDirMark();
 
 		$title = Title::makeTitleSafe( $result->rc_namespace, $result->rc_title );
+// <IntraACL>
+		if ( !$title->userCanReadEx() ) {
+			return '';
+		}
+// </IntraACL>
 		$time = Html::element( 'span', array( 'class' => 'mw-newpages-time' ),
 			$wgLang->timeAndDate( $result->rc_timestamp, true )
 		);

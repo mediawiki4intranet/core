@@ -236,6 +236,11 @@ class CategoryViewer {
 	 * @deprecated since 1.17 kept for compatibility, please use addSubcategoryObject instead
 	 */
 	function addSubcategory( Title $title, $sortkey, $pageLength ) {
+// <IntraACL>
+		if ( !$title->userCanReadEx() ) {
+			return;
+		}
+// </IntraACL>
 		$this->addSubcategoryObject( Category::newFromTitle( $title ), $sortkey, $pageLength );
 	}
 
@@ -293,6 +298,12 @@ class CategoryViewer {
 	 * Add a miscellaneous page
 	 */
 	function addPage( $title, $sortkey, $pageLength, $isRedirect = false ) {
+/*op-patch|TS|2009-06-19|HaloACL|SafeTitle|start*/
+		if (!$title->userCanReadEx()) {
+			return;
+		}
+/*op-patch|TS|2009-06-19|end*/  
+		
 		global $wgContLang;
 
 		$link = Linker::link( $title );

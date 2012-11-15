@@ -93,6 +93,11 @@ class ApiParse extends ApiBase {
 				}
 
 				$titleObj = $rev->getTitle();
+				// <IntraACL>
+				if ( !$titleObj->userCanRead() ) {
+					$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+				}
+				// </IntraACL>
 
 				$wgTitle = $titleObj;
 
@@ -153,6 +158,11 @@ class ApiParse extends ApiBase {
 				} elseif ( !$titleObj || !$titleObj->exists() ) {
 					$this->dieUsage( "The page you specified doesn't exist", 'missingtitle' );
 				}
+				// <IntraACL>
+				if ( !$titleObj->userCanRead() ) {
+					$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+				}
+				// </IntraACL>
 				$wgTitle = $titleObj;
 
 				$articleObj = new Article( $titleObj, 0 );
@@ -170,7 +180,9 @@ class ApiParse extends ApiBase {
 			}
 			$this->text = $text;
 			$titleObj = Title::newFromText( $title );
-			if ( !$titleObj ) {
+			// <IntraACL>
+			if ( !$titleObj || !$titleObj->userCanRead() ) {
+			// </IntraACL>
 				$this->dieUsageMsg( array( 'invalidtitle', $title ) );
 			}
 			$wgTitle = $titleObj;

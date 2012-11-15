@@ -388,6 +388,11 @@ class SpecialWatchlist extends SpecialPage {
 		foreach ( $res as $obj ) {
 			# Make RC entry
 			$rc = RecentChange::newFromRow( $obj );
+// <IntraACL>
+			if ( !$rc->getTitle()->userCanReadEx() ) {
+				continue;
+			}
+// </IntraACL>
 			$rc->counter = $counter++;
 
 			if ( $wgShowUpdatedMarker ) {

@@ -50,6 +50,9 @@ class ParserCache {
 		$pageid = $article->getID();
 		$renderkey = (int)($wgRequest->getVal('action') == 'render');
 
+		// Needed for IntraACL >= 2.03 to modify parser cache key for correct permissions
+		wfRunHooks( 'ParserOutputRenderKey', array( $article, &$renderkey ) );
+
 		$key = wfMemcKey( 'pcache', 'idhash', "{$pageid}-{$renderkey}!{$hash}" );
 		return $key;
 	}

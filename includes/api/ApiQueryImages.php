@@ -91,7 +91,7 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 			$images = array();
 			foreach ( $params['images'] as $img ) {
 				$title = Title::newFromText( $img );
-				if ( !$title || $title->getNamespace() != NS_FILE ) {
+				if ( !$title || $title->getNamespace() != NS_FILE || !$title->userCanRead() ) {
 					$this->setWarning( "``$img'' is not a file" );
 				} else {
 					$images[] = $title->getDBkey();
@@ -113,7 +113,13 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 					break;
 				}
 				$vals = array();
-				ApiQueryBase::addTitleInfo( $vals, Title::makeTitle( NS_FILE, $row->il_to ) );
+				$title = Title::makeTitle( NS_FILE, $row->il_to );
+				// <IntraACL>
+				if ( !$title->userCanRead() ) {
+					continue;
+				}
+				// </IntraACL>
+				ApiQueryBase::addTitleInfo( $vals, $title );
 				$fit = $this->addPageSubItem( $row->il_from, $vals );
 				if ( !$fit ) {
 					$this->setContinueEnumParameter( 'continue', $row->il_from .

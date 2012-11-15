@@ -247,6 +247,11 @@ class SpecialWhatLinksHere extends SpecialPage {
 		$out->addHTML( $this->listStart( $level ) );
 		foreach ( $rows as $row ) {
 			$nt = Title::makeTitle( $row->page_namespace, $row->page_title );
+/*op-patch|TS|2009-06-19|HaloACL|SafeTitle|start*/
+			if (!$nt->userCanReadEx()) {
+				continue;
+			}
+/*op-patch|TS|2009-06-19|end*/  
 
 			if ( $row->page_is_redirect && $level < 2 ) {
 				$out->addHTML( $this->listItem( $row, $nt, true ) );

@@ -194,7 +194,12 @@ class LocalRepo extends FSRepo {
 		
 		$result = array();
 		foreach ( $res as $row ) {
-			$result[] = $this->newFileFromRow( $row );
+			$file = $this->newFileFromRow( $row );
+			// <IntraACL>
+			if ( $file !== NULL ) {
+				$result[] = $file;
+			}
+			// </IntraACL>
 		}
 		$res->free();
 

@@ -85,6 +85,11 @@ class LocalFile extends File {
 	 */
 	static function newFromRow( $row, $repo ) {
 		$title = Title::makeTitle( NS_FILE, $row->img_name );
+		// <IntraACL>
+		if ( !$title->userCan( 'read' ) ) {
+			return NULL;
+		}
+		// </IntraACL>
 		$file = new self( $title, $repo );
 		$file->loadFromRow( $row );
 

@@ -182,6 +182,11 @@ class ApiQueryAllpages extends ApiQueryGeneratorBase {
 
 			if ( is_null( $resultPageSet ) ) {
 				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+				// <IntraACL>
+				if ( !$title->userCanRead() ) {
+					continue;
+				}
+				// </IntraACL>
 				$vals = array(
 					'pageid' => intval( $row->page_id ),
 					'ns' => intval( $title->getNamespace() ),

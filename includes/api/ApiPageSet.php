@@ -373,6 +373,11 @@ class ApiPageSet extends ApiQueryBase {
 	public function processDbRow( $row ) {
 		// Store Title object in various data structures
 		$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+		// <IntraACL>
+		if ( !$title->userCanRead() ) {
+			return;
+		}
+		// </IntraACL>
 
 		$pageId = intval( $row->page_id );
 		$this->mAllPages[$row->page_namespace][$row->page_title] = $pageId;
@@ -635,6 +640,11 @@ class ApiPageSet extends ApiQueryBase {
 			$from = $this->mPendingRedirectIDs[$rdfrom]->getPrefixedText();
 			$to = Title::makeTitle( $row->rd_namespace, $row->rd_title, $row->rd_fragment, $row->rd_interwiki );
 			unset( $this->mPendingRedirectIDs[$rdfrom] );
+			// <IntraACL>
+			if ( !$to->userCanRead() ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( !isset( $this->mAllPages[$row->rd_namespace][$row->rd_title] ) ) {
 				$lb->add( $row->rd_namespace, $row->rd_title );
 			}
@@ -673,7 +683,9 @@ class ApiPageSet extends ApiQueryBase {
 
 		foreach ( $titles as $title ) {
 			$titleObj = is_string( $title ) ? Title::newFromText( $title ) : $title;
-			if ( !$titleObj ) {
+			// <IntraACL>
+			if ( !$titleObj || !$titleObj->userCanRead() ) {
+			// </IntraACL>
 				// Handle invalid titles gracefully
 				$this->mAllpages[0][$title] = $this->mFakePageId;
 				$this->mInvalidTitles[$this->mFakePageId] = $title;

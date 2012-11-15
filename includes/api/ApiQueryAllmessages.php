@@ -53,7 +53,9 @@ class ApiQueryAllmessages extends ApiQueryBase {
 		if ( $params['enableparser'] ) {
 			if ( !is_null( $params['title'] ) ) {
 				$title = Title::newFromText( $params['title'] );
-				if ( !$title ) {
+				// <IntraACL>
+				if ( !$title || !$title->userCanRead() ) {
+				// </IntraACL>
 					$this->dieUsageMsg( array( 'invalidtitle', $params['title'] ) );
 				}
 			} else {

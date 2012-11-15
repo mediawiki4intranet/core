@@ -121,8 +121,13 @@ class ApiQueryExtLinksUsage extends ApiQueryGeneratorBase {
 				if ( $fld_ids ) {
 					$vals['pageid'] = intval( $row->page_id );
 				}
+				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+				// <IntraACL>
+				if ( !$title->userCanRead() ) {
+					continue;
+				}
+				// </IntraACL>
 				if ( $fld_title ) {
-					$title = Title::makeTitle( $row->page_namespace, $row->page_title );
 					ApiQueryBase::addTitleInfo( $vals, $title );
 				}
 				if ( $fld_url ) {

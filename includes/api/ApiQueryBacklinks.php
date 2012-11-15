@@ -263,7 +263,12 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 			} else {
 				$this->pageMap[$row->page_namespace][$row->page_title] = $row->page_id;
 				if ( $row->page_is_redirect ) {
-					$this->redirTitles[] = Title::makeTitle( $row->page_namespace, $row->page_title );
+					$redir = Title::makeTitle( $row->page_namespace, $row->page_title );
+					// <IntraACL>
+					if ( $redir->userCanRead() ) {
+						$this->redirTitles[] = $redir;
+					}
+					// </IntraACL>
 				}
 
 				$resultPageSet->processDbRow( $row );
@@ -347,6 +352,11 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 	private function extractRowInfo( $row ) {
 		$this->pageMap[$row->page_namespace][$row->page_title] = $row->page_id;
 		$t = Title::makeTitle( $row->page_namespace, $row->page_title );
+		// <IntraACL>
+		if ( !$t->userCanRead() ) {
+			continue;
+		}
+		// </IntraACL>
 		$a = array( 'pageid' => intval( $row->page_id ) );
 		ApiQueryBase::addTitleInfo( $a, $t );
 		if ( $row->page_is_redirect ) {
@@ -359,7 +369,13 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 
 	private function extractRedirRowInfo( $row ) {
 		$a['pageid'] = intval( $row->page_id );
-		ApiQueryBase::addTitleInfo( $a, Title::makeTitle( $row->page_namespace, $row->page_title ) );
+		$t = Title::makeTitle( $row->page_namespace, $row->page_title );
+		// <IntraACL>
+		if ( !$t->userCanRead() ) {
+			continue;
+		}
+		// </IntraACL>
+		ApiQueryBase::addTitleInfo( $a, $t );
 		if ( $row->page_is_redirect ) {
 			$a['redirect'] = '';
 		}

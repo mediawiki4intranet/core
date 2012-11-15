@@ -110,6 +110,11 @@ class ApiQueryWatchlistRaw extends ApiQueryGeneratorBase {
 			$t = Title::makeTitle( $row->wl_namespace, $row->wl_title );
 
 			if ( is_null( $resultPageSet ) ) {
+				// <IntraACL>
+				if ( !$t || !$t->userCanRead() ) {
+					return false;
+				}
+				// </IntraACL>
 				$vals = array();
 				ApiQueryBase::addTitleInfo( $vals, $t );
 				if ( isset( $prop['changed'] ) && !is_null( $row->wl_notificationtimestamp ) )

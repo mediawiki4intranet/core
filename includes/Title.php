@@ -104,7 +104,9 @@ class Title {
 		$t = new Title();
 		$t->mDbkeyform = $key;
 		if ( $t->secureAndSplit() ) {
-			return $t;
+// <IntraACL>
+			return $t->checkAccessControl();
+// </IntraACL>
 		} else {
 			return null;
 		}
@@ -157,7 +159,10 @@ class Title {
 				$cachedcount++;
 				Title::$titleCache[$text] =& $t;
 			}
-			return $t;
+/*op-patch|TS|2009-06-19|HaloACL|SafeTitle|start*/
+			return $t->checkAccessControl();
+/*op-patch|TS|2009-06-19|end*/  
+// Preplaced by patch			return $t;
 		} else {
 			$ret = null;
 			return $ret;
@@ -193,7 +198,9 @@ class Title {
 
 		$t->mDbkeyform = str_replace( ' ', '_', $url );
 		if ( $t->secureAndSplit() ) {
-			return $t;
+// <IntraACL>
+			return $t->checkAccessControl();
+// </IntraACL>
 		} elseif ( $return_bad ) {
 			return $t;
 		} else {
@@ -307,7 +314,11 @@ class Title {
 		$t->mArticleID = ( $ns >= 0 ) ? -1 : 0;
 		$t->mUrlform = wfUrlencode( $t->mDbkeyform );
 		$t->mTextform = str_replace( '_', ' ', $title );
+/*op-patch|TS|2009-06-19|HaloACL|SafeTitle|start*/
+		$t = $t->checkAccessControl();
 		return $t;
+/*op-patch|TS|2009-06-19|end*/  
+// Preplaced by patch		return $t;
 	}
 
 	/**
@@ -325,7 +336,9 @@ class Title {
 		$t = new Title();
 		$t->mDbkeyform = Title::makeName( $ns, $title, $fragment, $interwiki );
 		if ( $t->secureAndSplit() ) {
-			return $t;
+// <IntraACL>
+			return $t->checkAccessControl();
+// </IntraACL>
 		} else {
 			return null;
 		}
@@ -4289,6 +4302,7 @@ class Title {
 
 		return $types;
 	}
+
 	/**
 	 * Get a filtered list of all restriction types supported by this wiki.
 	 * @param bool $exists True to get all restriction types that apply to
@@ -4369,4 +4383,104 @@ class Title {
 		wfRunHooks( 'PageContentLanguage', array( $this, &$pageLang, $wgLang ) );
 		return wfGetLangObj( $pageLang );
 	}
+
+// <IntraACL>
+	
+	/**
+	 * This function is called from the patches for HaloACL for secure listings
+	 * (e.g. Special:AllPages). It checks, whether the current user is allowed
+	 * to read the article for this title object. For normal pages this is
+	 * evaluate in the method <userCanRead>.
+	 * However, the special pages that generate listings, often create title
+	 * objects before the can check their accessibility. The fallback mechanism
+	 * of HaloACL creates the title "Permission denied" for the article that
+	 * must not be accessed. The listings would then show a link to "Permission
+	 * denied". So this function returns "false" for the title "Permission denied"
+	 * as well.
+	 *
+	 * @return
+	 * 		true, if this title can be read
+	 * 		false, if the title is protected or "Permission denied".
+	 */
+	public function userCanReadEx( $otherUser = NULL ) {
+		if ( !defined( 'HACL_HALOACL_VERSION' ) ) {
+			// IntraACL is disabled
+			return true;
+		}
+		global $haclgContLang;
+		if ( $this->mTextform === $haclgContLang->getPermissionDeniedPage() ) {
+			// Special handling of "Permission denied" page
+			return false;
+		}
+		if ( $otherUser ) {
+			$canRead = false;
+			$status = HACLEvaluator::userCan( $this, $otherUser, 'read', $canRead );
+			return $canRead;
+		}
+		return $this->userCanRead();
+	}
+
+	/**
+	 * This function checks, if this title is accessible for the action of the
+	 * current request. If the action is unknown it is assumed to be "read".
+	 * If the title is not accessible, the new title "Permission denied" is
+	 * returned. This is a fallback to protect titles if all other security
+	 * patches fail.
+	 *
+	 * While a page is rendered, the same title is often checked several times.
+	 * To speed things up, the results of an accessibility check are internally
+	 * cached.
+	 *
+	 * This function can be disabled in HACL_Initialize.php or LocalSettings.php
+	 * by setting the variable $haclgEnableTitleCheck = false.
+	 *
+	 * @return
+	 * 		$this, if access is granted on this title or
+	 * 		the title for "Permission denied" if not.
+	 */
+	private function checkAccessControl() {
+		if ( !defined( 'HACL_HALOACL_VERSION' ) ) {
+			// IntraACL is disabled or not fully initialized
+			return $this;
+		}
+		global $haclgEnableTitleCheck;
+		if ( isset( $haclgEnableTitleCheck ) && $haclgEnableTitleCheck === false ) {
+			return $this;
+		}
+		static $permissionCache = array();
+		
+		$action = 'read';
+		$index = $this->getFullText().'-'.$action;
+		$allowed = @$permissionCache[$index];
+		if ( !isset( $allowed ) ) {
+			switch ( $action ) {
+				case 'create':
+				case 'move':
+				case 'delete':
+					$allowed = $this->userCan($action);
+					break;
+				case 'edit':
+					// If the article does not exist and edit right was requested,
+					// check for create right.
+					$allowed = $this->userCan($this->exists() ? 'edit' : 'create');
+					break;
+				default:
+					// If the user has no read access to a non-existing page,
+					// but has the right to create it - allow him to "read" it
+					$allowed = $this->userCanRead() || !$this->exists() && $this->userCan('create');
+			}
+			$permissionCache[$index] = $allowed;
+		}
+		if ( $allowed === false ) {
+			global $haclgContLang;
+			$etc = $haclgEnableTitleCheck;
+			$haclgEnableTitleCheck = false;
+			$t = Title::newFromURL($haclgContLang->getPermissionDeniedPage());
+			$haclgEnableTitleCheck = $etc;
+			return $t;
+		}
+		return $this;
+	}
+// </IntraACL>
+
 }

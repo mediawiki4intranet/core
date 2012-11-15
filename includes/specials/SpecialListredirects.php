@@ -108,6 +108,11 @@ class ListredirectsPage extends QueryPage {
 		# Find out where the redirect leads
 		$target = $this->getRedirectTarget( $result );
 		if( $target ) {
+// <IntraACL>
+			if ( !$target->userCanReadEx() ) {
+				return '';
+			}
+// </IntraACL>
 			global $wgLang;
 			# Make a link to the destination page
 			$arr = $wgLang->getArrow() . $wgLang->getDirMark();

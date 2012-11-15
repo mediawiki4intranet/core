@@ -49,15 +49,16 @@ class ChangesFeed {
 	 * @return null or true
 	 */
 	public function execute( $feed, $rows, $lastmod, $opts ) {
-		global $wgLang, $wgRenderHashAppend;
+		global $wgLang, $wgRenderHashAppend, $wgUser;
 
 		if ( !FeedUtils::checkFeedOutput( $this->format ) ) {
 			return;
 		}
 
+		$userid = $wgUser->getId();
 		$optionsHash = md5( serialize( $opts->getAllValues() ) ) . $wgRenderHashAppend;
-		$timekey = wfMemcKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash, 'timestamp' );
-		$key = wfMemcKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash );
+		$timekey = wfMemcKey( $this->type, $this->format, $userid, $wgLang->getCode(), $optionsHash, 'timestamp' );
+		$key = wfMemcKey( $this->type, $this->format, $userid, $wgLang->getCode(), $optionsHash );
 
 		FeedUtils::checkPurge( $timekey, $key );
 
@@ -162,6 +163,11 @@ class ChangesFeed {
 
 		foreach( $sorted as $obj ) {
 			$title = Title::makeTitle( $obj->rc_namespace, $obj->rc_title );
+// <IntraACL>
+			if( !$title || method_exists( $title, 'userCanReadEx' ) && !$title->userCanReadEx() ) {
+				continue;
+			}
+// </IntraACL>
 			$talkpage = MWNamespace::canTalk( $obj->rc_namespace ) ? $title->getTalkPage()->getFullUrl() : '';
 			// Skip items with deleted content (avoids partially complete/inconsistent output)
 			if( $obj->rc_deleted ) continue;

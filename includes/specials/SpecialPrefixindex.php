@@ -167,6 +167,11 @@ class SpecialPrefixindex extends SpecialAllpages {
 
 				while( ( $n < $this->maxPerPage ) && ( $s = $res->fetchObject() ) ) {
 					$t = Title::makeTitle( $s->page_namespace, $s->page_title );
+/*op-patch|TS|2009-06-19|HaloACL|SafeTitle|start*/
+					if ($t && !$t->userCanReadEx()) {
+						continue; 
+					}
+/*op-patch|TS|2009-06-19|end*/  
 					if( $t ) {
 						$link = ($s->page_is_redirect ? '<div class="allpagesredirect">' : '' ) .
 							$sk->linkKnown(

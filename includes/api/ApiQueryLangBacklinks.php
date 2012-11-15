@@ -122,6 +122,11 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 				$entry = array( 'pageid' => $row->page_id );
 
 				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+				// <IntraACL>
+				if ( !$title->userCanRead() ) {
+					continue;
+				}
+				// </IntraACL>
 				ApiQueryBase::addTitleInfo( $entry, $title );
 
 				if ( $row->page_is_redirect ) {

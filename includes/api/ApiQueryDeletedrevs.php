@@ -228,6 +228,11 @@ class ApiQueryDeletedrevs extends ApiQueryBase {
 			}
 
 			$title = Title::makeTitle( $row->ar_namespace, $row->ar_title );
+			// <IntraACL>
+			if ( !$title->userCanRead() ) {
+				continue;
+			}
+			// </IntraACL>
 
 			if ( $fld_parsedcomment ) {
 				$rev['parsedcomment'] = $wgUser->getSkin()->formatComment( $row->ar_comment, $title );

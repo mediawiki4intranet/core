@@ -56,7 +56,9 @@ class ApiPurge extends ApiBase {
 		foreach ( $params['titles'] as $t ) {
 			$r = array();
 			$title = Title::newFromText( $t );
-			if ( !$title instanceof Title ) {
+			// <IntraACL>
+			if ( !$title instanceof Title || !$title->userCanRead() ) {
+			// </IntraACL>
 				$r['title'] = $t;
 				$r['invalid'] = '';
 				$result[] = $r;

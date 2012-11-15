@@ -495,7 +495,10 @@ class EmailNotification {
 					if ( $watchingUser->getOption( 'enotifwatchlistpages' ) &&
 						( !$minorEdit || $watchingUser->getOption( 'enotifminoredits' ) ) &&
 						$watchingUser->isEmailConfirmed() &&
-						$watchingUser->getID() != $userTalkId )
+						$watchingUser->getID() != $userTalkId &&
+// <IntraACL>
+						!$title->getUserPermissionsErrors( 'read', $watchingUser ) ) // Check IntraACL read access
+// </IntraACL>
 					{
 						$this->compose( $watchingUser );
 					}
@@ -506,7 +509,12 @@ class EmailNotification {
 		global $wgUsersNotifiedOnAllChanges;
 		foreach ( $wgUsersNotifiedOnAllChanges as $name ) {
 			$user = User::newFromName( $name );
-			$this->compose( $user );
+// <IntraACL>
+			if ( !$title->getUserPermissionsErrors( 'read', $user ) ) {
+				// Check IntraACL read access
+				$this->compose( $user );
+			}
+// </IntraACL>
 		}
 
 		$this->sendMails();

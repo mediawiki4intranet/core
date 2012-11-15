@@ -1740,7 +1740,18 @@ class Parser {
 
 			wfProfileOut( __METHOD__."-misc" );
 			wfProfileIn( __METHOD__."-title" );
+			// <IntraACL>
+			// Do not check permissions for links, except image links
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				$etc = haclfDisableTitlePatch();
+			}
+			// </IntraACL>
 			$nt = Title::newFromText( $this->mStripState->unstripNoWiki( $link ) );
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				haclfRestoreTitlePatch( $etc );
+			}
+			// </IntraACL>
 			if ( $nt === null ) {
 				$s .= $prefix . '[[' . $line;
 				wfProfileOut( __METHOD__."-title" );
@@ -1823,7 +1834,10 @@ class Parser {
 
 				if ( $ns == NS_FILE ) {
 					wfProfileIn( __METHOD__."-image" );
-					if ( !wfIsBadImage( $nt->getDBkey(), $this->mTitle ) ) {
+					// <IntraACL>
+					if ( !wfIsBadImage( $nt->getDBkey(), $this->mTitle ) &&
+						( $canRead = $nt->userCanRead() ) ) {
+					// </IntraACL>
 						if ( $wasblank ) {
 							# if no parameters were passed, $text
 							# becomes something like "File:Foo.png",
@@ -1840,6 +1854,13 @@ class Parser {
 						# cloak any absolute URLs inside the image markup, so replaceExternalLinks() won't touch them
 						$s .= $prefix . $this->armorLinks(
 							$this->makeImage( $nt, $text, $holders ) ) . $trail;
+					// <IntraACL>
+					} elseif ( !$canRead ) {
+						# Still register dependency on a nonreadable image
+						$time = $sha1 = $descQuery = false;
+						list( $file, $nt ) = $this->fetchFileAndTitle( $nt, $time, $sha1 );
+						$s .= $prefix . $trail;
+					// </IntraACL>
 					} else {
 						$s .= $prefix . $trail;
 					}
@@ -3102,7 +3123,18 @@ class Parser {
 			if ( $subpage !== '' ) {
 				$ns = $this->mTitle->getNamespace();
 			}
+			// <IntraACL>
+			// Template access check is done below, after loading
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				$etc = haclfDisableTitlePatch();
+			}
+			// </IntraACL>
 			$title = Title::newFromText( $part1, $ns );
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				haclfRestoreTitlePatch( $etc );
+			}
+			// </IntraACL>
 			if ( $title ) {
 				$titleText = $title->getPrefixedText();
 				# Check for language variants if the template is not found
@@ -3138,11 +3170,25 @@ class Parser {
 					$found = false; # access denied
 					wfDebug( __METHOD__.": template inclusion denied for " . $title->getPrefixedDBkey() );
 				} else {
-					list( $text, $title ) = $this->getTemplateDom( $title );
+					list( $text, $title, $canRead ) = $this->getTemplateDom( $title );
 					if ( $text !== false ) {
 						$found = true;
 						$isChildObj = true;
 					}
+					// <IntraACL>
+					if ( $text !== false && !$canRead ) {
+						// Expand templates to always get correct templatelinks,
+						// even if current user has no access to some templates
+						global $haclgInclusionDeniedMessage;
+						$this->getPreprocessor()->newFrame()->expand( $text, 0 );
+						if ( $haclgInclusionDeniedMessage ) {
+							$text = wfMsg( $haclgInclusionDeniedMessage );
+						} elseif ( $haclgInclusionDeniedMessage === '' ) {
+							$text = '';
+						}
+						$isChildObj = false;
+					}
+					// </IntraACL>
 				}
 
 				# If the title is valid but undisplayable, make a link to it
@@ -3268,32 +3314,36 @@ class Parser {
 			$titleText = $title->getPrefixedDBkey();
 		}
 		if ( isset( $this->mTplDomCache[$titleText] ) ) {
-			return array( $this->mTplDomCache[$titleText], $title );
+			$dom = $this->mTplDomCache[$titleText];
+			if ( !$dom ) {
+				return array( false, $title, true );
+			}
+			return array( $dom[0], $title, $dom[1] );
 		}
 
 		# Cache miss, go to the database
-		list( $text, $title ) = $this->fetchTemplateAndTitle( $title );
+		list( $text, $title, $canRead ) = $this->fetchTemplateAndTitle( $title );
 
 		if ( $text === false ) {
 			$this->mTplDomCache[$titleText] = false;
-			return array( false, $title );
+			return array( false, $title, $canRead );
 		}
 
 		$dom = $this->preprocessToDom( $text, self::PTD_FOR_INCLUSION );
-		$this->mTplDomCache[ $titleText ] = $dom;
+		$this->mTplDomCache[ $titleText ] = array( $dom, $canRead );
 
 		if ( !$title->equals( $cacheTitle ) ) {
 			$this->mTplRedirCache[$cacheTitle->getPrefixedDBkey()] =
 				array( $title->getNamespace(), $cdb = $title->getDBkey() );
 		}
 
-		return array( $dom, $title );
+		return array( $dom, $title, $canRead );
 	}
 
 	/**
 	 * Fetch the unparsed text of a template and register a reference to it.
 	 * @param Title $title
-	 * @return Array ( string or false, Title )
+	 * @return Array ( string or false, Title, boolean )
 	 */
 	function fetchTemplateAndTitle( $title ) {
 		$templateCb = $this->mOptions->getTemplateCallback(); # Defaults to Parser::statelessFetchTemplate()
@@ -3305,7 +3355,7 @@ class Parser {
 				$this->mOutput->addTemplate( $dep['title'], $dep['page_id'], $dep['rev_id'] );
 			}
 		}
-		return array( $text, $finalTitle );
+		return array( $text, $finalTitle, $stuff['canRead'] );
 	}
 
 	/**
@@ -3315,7 +3365,7 @@ class Parser {
 	 */
 	function fetchTemplate( $title ) {
 		$rv = $this->fetchTemplateAndTitle( $title );
-		return $rv[0];
+		return $rv[2] ? $rv[0] : '';
 	}
 
 	/**
@@ -3328,6 +3378,7 @@ class Parser {
 		$text = $skip = false;
 		$finalTitle = $title;
 		$deps = array();
+		$canRead = true;
 
 		# Loop to fetch the article, with up to 1 redirect
 		for ( $i = 0; $i < 2 && is_object( $title ); $i++ ) {
@@ -3336,6 +3387,7 @@ class Parser {
 			wfRunHooks( 'BeforeParserFetchTemplateAndtitle',
 				array( $parser, $title, &$skip, &$id ) );
 
+			$canRead = $canRead && $title->userCanRead();
 			if ( $skip ) {
 				$text = false;
 				$deps[] = array(
@@ -3345,11 +3397,21 @@ class Parser {
 				);
 				break;
 			}
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				$etc = haclfDisableTitlePatch();
+			}
+			// </IntraACL>
 			# Get the revision
 			$rev = $id
 				? Revision::newFromId( $id )
 				: Revision::newFromTitle( $title );
 			$rev_id = $rev ? $rev->getId() : 0;
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				haclfRestoreTitlePatch( $etc );
+			}
+			// </IntraACL>
 			# If there is no current revision, there is no page
 			if ( $id === false && !$rev ) {
 				$linkCache = LinkCache::singleton();
@@ -3386,9 +3448,20 @@ class Parser {
 			}
 			# Redirect?
 			$finalTitle = $title;
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				$etc = haclfDisableTitlePatch();
+			}
+			// </IntraACL>
 			$title = Title::newFromRedirect( $text );
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				haclfRestoreTitlePatch( $etc );
+			}
+			// </IntraACL>
 		}
 		return array(
+			'canRead' => $canRead,
 			'text' => $text,
 			'finalTitle' => $finalTitle,
 			'deps' => $deps );

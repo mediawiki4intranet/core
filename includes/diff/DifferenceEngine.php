@@ -1010,6 +1010,13 @@ CONTROL;
 			return false;
 		}
 
+		// <IntraACL>
+		if ( !$this->mNewRev->getTitle()->userCanRead() ) {
+			$this->mNewRev = false;
+			return false;
+		}
+		// </IntraACL>
+
 		// Update the new revision ID in case it was 0 (makes life easier doing UI stuff)
 		$this->mNewid = $this->mNewRev->getId();
 
@@ -1083,6 +1090,13 @@ CONTROL;
 
 		if ( $this->mOldRev ) {
 			$this->mOldPage = $this->mOldRev->getTitle();
+			// <IntraACL>
+			if ( !$this->mOldRev->getTitle()->userCanRead() ) {
+				$this->mOldid = false;
+				$this->mOldRev = false;
+				return false;
+			}
+			// </IntraACL>
 
 			$t = $wgLang->timeanddate( $this->mOldRev->getTimestamp(), true );
 			$dateofrev = $wgLang->date( $this->mOldRev->getTimestamp(), true );

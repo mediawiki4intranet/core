@@ -1637,6 +1637,10 @@ class Linker {
 						array(),
 						array( 'action' => 'edit' )
 					);
+				// <IntraACL>
+				} elseif ( !$titleObj->userCanRead() ) {
+					continue;
+				// </IntraACL>
 				} else {
 					$editLink = self::link(
 						$titleObj,

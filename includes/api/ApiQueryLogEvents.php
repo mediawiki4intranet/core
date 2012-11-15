@@ -134,7 +134,9 @@ class ApiQueryLogEvents extends ApiQueryBase {
 		$title = $params['title'];
 		if ( !is_null( $title ) ) {
 			$titleObj = Title::newFromText( $title );
-			if ( is_null( $titleObj ) ) {
+			// <IntraACL>
+			if ( is_null( $titleObj ) || !$titleObj->userCanRead() ) {
+			// </IntraACL>
 				$this->dieUsage( "Bad title value '$title'", 'param_title' );
 			}
 			$this->addWhereFld( 'log_namespace', $titleObj->getNamespace() );
@@ -262,9 +264,12 @@ class ApiQueryLogEvents extends ApiQueryBase {
 			$vals['pageid'] = intval( $row->page_id );
 		}
 
-		if ( $this->fld_title || $this->fld_parsedcomment ) {
-			$title = Title::makeTitle( $row->log_namespace, $row->log_title );
+		$title = Title::makeTitle( $row->log_namespace, $row->log_title );
+		// <IntraACL>
+		if ( !$title->userCanRead() ) {
+			return false;
 		}
+		// </IntraACL>
 
 		if ( $this->fld_title ) {
 			if ( LogEventsList::isDeleted( $row, LogPage::DELETED_ACTION ) ) {

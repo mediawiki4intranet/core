@@ -316,6 +316,11 @@ class LogEventsList {
 	public function logLine( $row ) {
 		$classes = array( 'mw-logline-' . $row->log_type );
 		$title = Title::makeTitle( $row->log_namespace, $row->log_title );
+// <IntraACL>
+		if ( !$title->userCanReadEx() ) {
+			return '';
+		}
+// </IntraACL>
 		// Log time
 		$time = $this->logTimestamp( $row );
 		// User links
