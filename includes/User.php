@@ -3165,6 +3165,13 @@ class User {
 	}
 
 	/**
+	 * Used in various newer extensions - backported from trunk
+	 */
+	public function getEditToken( $salt = '', $request = null ) {
+		return $this->editToken( $salt, $request );
+	}
+
+	/**
 	 * Generate a looking random token for various uses.
 	 *
 	 * @param $salt String Optional salt value

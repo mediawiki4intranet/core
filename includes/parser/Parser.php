@@ -338,6 +338,8 @@ class Parser {
 		# No more strip!
 		wfRunHooks( 'ParserAfterStrip', array( &$this, &$text, &$this->mStripState ) );
 		$text = $this->internalParse( $text );
+		# ParserAfterParse backported from trunk
+		wfRunHooks( 'ParserAfterParse', array( &$this, &$text, &$this->mStripState ) );
 
 		$text = $this->mStripState->unstripGeneral( $text );
 
@@ -3453,7 +3455,7 @@ class Parser {
 
 		$url = $title->getFullUrl( "action=$action" );
 
-		if ( strlen( $url ) > 255 ) {
+		if ( strlen( $url ) > 4095 ) {
 			return wfMsgForContent( 'scarytranscludetoolong' );
 		}
 		return $this->fetchScaryTemplateMaybeFromCache( $url );
