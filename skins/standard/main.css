@@ -160,11 +160,13 @@ hr.sep {
 	background-color: gray;
 }
 
-p.subpages {
+p.subpages,
+div.paragraph.subpages {
 	font-size: small;
 }
 
-p.subtitle {
+p.subtitle,
+div.paragraph.subtitle {
 	padding-top: 0;
 	margin-top: 0;
 }

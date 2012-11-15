@@ -293,7 +293,7 @@ img {
 	margin: 0 0 0 0;
 }
 
-p {
+p, div.paragraph {
 	margin: 1em 0 1em 0;
 }
 
@@ -488,14 +488,14 @@ h1, h2, h3, h4, h5, h6 {
 	margin: 0 0 .5em .5em;
 	border: 0;
 }
-div.floatright p {
+div.floatright p, div.floatright div.paragraph {
 	font-style: italic;
 }
 /* @noflip */div.floatleft, table.floatleft {
 	margin: 0 .5em .5em 0;
 	border: 0;
 }
-div.floatleft p {
+div.floatleft p, div.floatleft div.paragraph {
 	font-style: italic;
 }
 
@@ -657,7 +657,7 @@ span.updatedmarker {
 	margin-bottom: 1em;
 }
 
-.previewnote p {
+.previewnote p, .previewnote div.paragraph {
 	margin: 0;
 	padding: 0;
 }
@@ -844,7 +844,7 @@ pre, .mw-code {
 	background: url(footer-grad.png) repeat-x bottom left;
 }
 
-.mw-topbox p {
+.mw-topbox p, .mw-topbox div.paragraph {
 	padding: 0 0 0 0;
 	margin: 0 0 0 0;
 }

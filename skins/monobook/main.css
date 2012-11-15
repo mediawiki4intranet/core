@@ -104,7 +104,7 @@ pre, .mw-code {
 #localNotice {
 	margin: 0;
 }
-#siteNotice p {
+#siteNotice p, #siteNotice div.paragraph {
 	margin: 0;
 	padding: 0;
 }

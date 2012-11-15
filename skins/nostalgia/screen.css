@@ -47,7 +47,7 @@ textarea {
 	overflow: auto;
 }
 
-p.subtitle {
+p.subtitle, div.paragraph.subtitle {
 	padding-top: 0;
 	margin-top: 0;
 }

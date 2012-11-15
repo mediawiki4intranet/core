@@ -26,7 +26,8 @@ div.floatright {
 	position: relative;
 	margin: 0.5em 0 0.8em 1.4em;
 }
-div.floatright p {
+div.floatright p,
+div.floatright div.paragraph {
 	font-style: italic;
 }
 div.floatleft {
@@ -35,7 +36,8 @@ div.floatleft {
 	position: relative;
 	margin: 0.5em 1.4em 0.8em 0;
 }
-div.floatleft p {
+div.floatleft p,
+div.floatleft div.paragraph {
 	font-style: italic;
 }
 div.center {
@@ -155,7 +157,7 @@ h1, h2, h3, h4, h5, h6 {
 	font-weight: bold;
 }
 
-p {
+p, div.paragraph {
 	margin: 1em 0;
 	line-height: 1.2em;
 }
@@ -355,7 +357,7 @@ a.sortheader {
 h2, h3, h4, h5, h6, h7 {
 	page-break-after: avoid;
 }
-p {
+p, div.paragraph {
 	widows: 3;
 	orphans: 3;
 }

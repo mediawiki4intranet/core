@@ -39,7 +39,7 @@ div.floatright {
 }
 
 /* @noflip */
-div.floatright p {
+div.floatright p, div.floatright div.paragraph {
 	font-style: italic;
 }
 
@@ -51,7 +51,7 @@ div.floatleft {
 }
 
 /* @noflip */
-div.floatleft p {
+div.floatleft p, div.floatleft div.paragraph {
 	font-style: italic;
 }
 

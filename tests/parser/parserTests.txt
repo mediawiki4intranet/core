@@ -686,10 +686,8 @@ a
 c
 !! result
 <p>a
-</p>
-<pre> b 
-</pre>
-<p>c
+</p><pre> b 
+</pre><p>c
 </p>
 !! end
 
@@ -899,7 +897,6 @@ Ident preformatting with inline content
 &lt;cite&gt;
 &lt;em&gt;
 </pre>
-
 !! end
 
 !! test
@@ -911,8 +908,7 @@ Regression with preformatted in <center>
 !! result
 <center>
 <pre>Blah
-</pre>
-</center>
+</pre></center>
 
 !! end
 
@@ -926,8 +922,8 @@ Bug 6200: Preformatted in <blockquote>
 </blockquote>
 !! result
 <blockquote>
- Blah
-</blockquote>
+<pre>Blah
+</pre></blockquote>
 
 !! end
 
@@ -4000,8 +3996,8 @@ foo <hr
 !! result
 <hr />
 <hr />
-foo <hr /> bar
-
+<p>foo </p><hr /><p> bar
+</p>
 !! end
 
 !! test
@@ -5054,8 +5050,8 @@ Template with thumb image (with link in description)
 {{paramtest|
   param =[[Image:noimage.png|thumb|[[no link|link]] [[no link|caption]]]]}}
 !! result
-This is a test template with parameter <div class="thumb tright"><div class="thumbinner" style="width:182px;"><a href="/index.php?title=Special:Upload&amp;wpDestFile=Noimage.png" class="new" title="File:Noimage.png">File:Noimage.png</a>  <div class="thumbcaption"><a href="/index.php?title=No_link&amp;action=edit&amp;redlink=1" class="new" title="No link (page does not exist)">link</a> <a href="/index.php?title=No_link&amp;action=edit&amp;redlink=1" class="new" title="No link (page does not exist)">caption</a></div></div></div>
-
+<div class="paragraph">This is a test template with parameter <div class="thumb tright"><div class="thumbinner" style="width:182px;"><a href="/index.php?title=Special:Upload&amp;wpDestFile=Noimage.png" class="new" title="File:Noimage.png">File:Noimage.png</a>  <div class="thumbcaption"><a href="/index.php?title=No_link&amp;action=edit&amp;redlink=1" class="new" title="No link (page does not exist)">link</a> <a href="/index.php?title=No_link&amp;action=edit&amp;redlink=1" class="new" title="No link (page does not exist)">caption</a></div></div></div>
+</div>
 !! end
 
 !! article
@@ -5206,8 +5202,7 @@ BUG 529: Template with table, not included at beginning of line
 foo {{table}}
 !! result
 <p>foo 
-</p>
-<table>
+</p><table>
 <tr>
 <td> 1 </td>
 <td> 2
@@ -5226,8 +5221,7 @@ foo
 {{table}}
 !! result
 <p>foo
-</p>
-<table>
+</p><table>
 <tr>
 <td> 1 </td>
 <td> 2
@@ -7459,11 +7453,9 @@ Blah blah
 !! result
 <h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: Headline 1">edit</a>]</span> <span class="mw-headline" id="Headline_1"> Headline 1 </span></h2>
 <p>Some text
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=2" title="Edit section: Headline 2">edit</a>]</span> <span class="mw-headline" id="Headline_2">Headline 2</span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=2" title="Edit section: Headline 2">edit</a>]</span> <span class="mw-headline" id="Headline_2">Headline 2</span></h2>
 <p>More
-</p>
-<h3><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=3" title="Edit section: Smaller headline">edit</a>]</span> <span class="mw-headline" id="Smaller_headline">Smaller headline</span></h3>
+</p><h3><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=3" title="Edit section: Smaller headline">edit</a>]</span> <span class="mw-headline" id="Smaller_headline">Smaller headline</span></h3>
 <p>Blah blah
 </p>
 !! end
@@ -7508,8 +7500,7 @@ Some text
 <h6><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=4" title="Edit section: Skipping a level">edit</a>]</span> <span class="mw-headline" id="Skipping_a_level_2"> Skipping a level </span></h6>
 <h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=5" title="Edit section: Headline 2">edit</a>]</span> <span class="mw-headline" id="Headline_2"> Headline 2 </span></h2>
 <p>Some text
-</p>
-<h3><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=6" title="Edit section: Another headline">edit</a>]</span> <span class="mw-headline" id="Another_headline">Another headline</span></h3>
+</p><h3><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=6" title="Edit section: Another headline">edit</a>]</span> <span class="mw-headline" id="Another_headline">Another headline</span></h3>
 
 !! end
 
@@ -7783,8 +7774,7 @@ But just in case it doesn't...
 !! result
 <h1><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: =">edit</a>]</span> <span class="mw-headline" id=".3D">=</span></h1>
 <p>The line above must have a trailing space!
-</p>
-<h1><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=2" title="Edit section: =">edit</a>]</span> <span class="mw-headline" id=".3D_2">=</span></h1>
+</p><h1><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=2" title="Edit section: =">edit</a>]</span> <span class="mw-headline" id=".3D_2">=</span></h1>
 <p>But just in case it doesn't...
 </p>
 !! end
@@ -7810,8 +7800,7 @@ section 4
 section 5
 !! result
 <p>The tooltips shall not show entities to the user (ie. be double escaped)
-</p>
-<table id="toc" class="toc"><tr><td><div id="toctitle"><h2>Contents</h2></div>
+</p><table id="toc" class="toc"><tr><td><div id="toctitle"><h2>Contents</h2></div>
 <ul>
 <li class="toclevel-1 tocsection-1"><a href="#text_.3E_text"><span class="tocnumber">1</span> <span class="toctext">text &gt; text</span></a></li>
 <li class="toclevel-1 tocsection-2"><a href="#text_.3C_text"><span class="tocnumber">2</span> <span class="toctext">text &lt; text</span></a></li>
@@ -7822,17 +7811,13 @@ section 5
 </td></tr></table>
 <h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: text > text">edit</a>]</span> <span class="mw-headline" id="text_.3E_text"> text &gt; text </span></h2>
 <p>section 1
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=2" title="Edit section: text &lt; text">edit</a>]</span> <span class="mw-headline" id="text_.3C_text"> text &lt; text </span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=2" title="Edit section: text &lt; text">edit</a>]</span> <span class="mw-headline" id="text_.3C_text"> text &lt; text </span></h2>
 <p>section 2
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=3" title="Edit section: text &amp; text">edit</a>]</span> <span class="mw-headline" id="text_.26_text"> text &amp; text </span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=3" title="Edit section: text &amp; text">edit</a>]</span> <span class="mw-headline" id="text_.26_text"> text &amp; text </span></h2>
 <p>section 3
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=4" title="Edit section: text ' text">edit</a>]</span> <span class="mw-headline" id="text_.27_text"> text ' text </span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=4" title="Edit section: text ' text">edit</a>]</span> <span class="mw-headline" id="text_.27_text"> text ' text </span></h2>
 <p>section 4
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=5" title="Edit section: text &quot; text">edit</a>]</span> <span class="mw-headline" id="text_.22_text"> text " text </span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=5" title="Edit section: text &quot; text">edit</a>]</span> <span class="mw-headline" id="text_.22_text"> text " text </span></h2>
 <p>section 5
 </p>
 !! end
@@ -8107,8 +8092,8 @@ fixme: doBlockLevels won't wrap this in a paragraph because it contains a div
 !! input
 [[Media:Foobar.jpg|Safe Link<div style=display:none>" onmouseover="alert(document.cookie)" onfoo="</div>]]
 !! result
-<a href="http://example.com/images/3/3a/Foobar.jpg" class="internal" title="Foobar.jpg">Safe Link&lt;div style="display:none"&gt;" onmouseover="alert(document.cookie)" onfoo="&lt;/div&gt;</a>
-
+<div class="paragraph"><a href="http://example.com/images/3/3a/Foobar.jpg" class="internal" title="Foobar.jpg">Safe Link&lt;div style="display:none"&gt;" onmouseover="alert(document.cookie)" onfoo="&lt;/div&gt;</a>
+</div>
 !! end
 
 !! test
@@ -8721,8 +8706,8 @@ noxml
 '<tag>'
 array (
 )
-</pre>&lt;/tag&gt;
-
+</pre><p>&lt;/tag&gt;
+</p>
 !! end
 
 !! test
@@ -8766,8 +8751,8 @@ NULL
 array (
   'foo' => 'bar',
 )
-</pre>text
-
+</pre><p>text
+</p>
 !! end
 
 # </tag> should be output literally since there is no matching tag that begins it
@@ -8813,8 +8798,7 @@ Parser hook: static parser hook inside a comment
 <!-- <statictag>hello, world</statictag> -->
 <statictag action=flush/>
 !! result
-<p><br />
-</p>
+<p><br /></p>
 !! end
 
 # Nested template calls; this case was broken by Parser.php rev 1.506,
@@ -8850,7 +8834,7 @@ Sanitizer: Closing of open tags
 !! input
 <s></s><table></table>
 !! result
-<s></s><table></table>
+<p><s></s></p><table></table>
 
 !! end
 
@@ -9220,7 +9204,7 @@ Fuzz testing: Parser14
 http://__TOC__
 !! result
 <h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: onmouseover=">edit</a>]</span> <span class="mw-headline" id="onmouseover.3D"> onmouseover= </span></h2>
-http://<table id="toc" class="toc"><tr><td><div id="toctitle"><h2>Contents</h2></div>
+<p>http://</p><table id="toc" class="toc"><tr><td><div id="toctitle"><h2>Contents</h2></div>
 <ul>
 <li class="toclevel-1 tocsection-1"><a href="#onmouseover.3D"><span class="tocnumber">1</span> <span class="toctext">onmouseover=</span></a></li>
 </ul>
@@ -9288,8 +9272,7 @@ http://===r:::https://b
 {|
 !!result
 <p><a rel="nofollow" class="external free" href="http://===r:::https://b">http://===r:::https://b</a>
-</p>
-<table>
+</p><table>
 <tr><td></td></tr>
 </table>
 
@@ -9311,12 +9294,11 @@ MOVE YOUR MOUSE CURSOR OVER THIS TEXT
 |
 !! result
 <table>
-{{{|
+<p>{{{|
 <u class="&#124;">}}}} &gt;
 <br style="onmouseover=&#39;alert(document.cookie);&#39;" />
-
-MOVE YOUR MOUSE CURSOR OVER THIS TEXT
-<tr>
+</p><p>MOVE YOUR MOUSE CURSOR OVER THIS TEXT
+</p><tr>
 <td></u>
 </td>
 </tr>
@@ -9371,7 +9353,7 @@ Fuzz testing: URL adjacent extension (no space, dirty; pre)
 !! input
 http://example.com<pre>junk</pre>
 !! result
-<a rel="nofollow" class="external free" href="http://example.com">http://example.com</a><pre>junk</pre>
+<p><a rel="nofollow" class="external free" href="http://example.com">http://example.com</a></p><pre>junk</pre>
 
 !!end
 
@@ -10444,13 +10426,9 @@ Say the magic word
 </li><li> Talk:Parser_test
 </li><li> Parser test
 </li><li> Parser_test
-</li><li> 
-</li><li> 
+</li><li></li><li></li><li> Talk
 </li><li> Talk
-</li><li> Talk
-</li><li> 
-</li><li> 
-</li><li> <a href="/index.php?title=Template:Dynamic&amp;action=edit&amp;redlink=1" class="new" title="Template:Dynamic (page does not exist)">Template:Dynamic</a>
+</li><li></li><li></li><li> <a href="/index.php?title=Template:Dynamic&amp;action=edit&amp;redlink=1" class="new" title="Template:Dynamic (page does not exist)">Template:Dynamic</a>
 </li></ul>
 
 !! end
@@ -10480,8 +10458,7 @@ image4    |300px| centre
 			<div style="height: 150px;">Image2.gif</div>
 			<div class="gallerytext">
 <p>||||
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div style="height: 150px;">Image3</div>
@@ -10492,15 +10469,13 @@ image4    |300px| centre
 			<div style="height: 150px;">Image4</div>
 			<div class="gallerytext">
 <p>300px| centre
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div style="height: 150px;">Image5.svg</div>
 			<div class="gallerytext">
 <p><a rel="nofollow" class="external free" href="http://///////">http://///////</a>
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div style="height: 150px;">* image6</div>
@@ -10528,8 +10503,7 @@ image:foobar.jpg|Blabla|alt=This is a foo-bar.|blabla.
 			<div style="height: 70px;">Nonexistant.jpg</div>
 			<div class="gallerytext">
 <p>caption
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 105px"><div style="width: 105px">
 			<div style="height: 70px;">Nonexistant.jpg</div>
@@ -10540,8 +10514,7 @@ image:foobar.jpg|Blabla|alt=This is a foo-bar.|blabla.
 			<div class="thumb" style="width: 100px;"><div style="margin:31px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="" src="http://example.com/images/thumb/3/3a/Foobar.jpg/70px-Foobar.jpg" width="70" height="8" /></a></div></div>
 			<div class="gallerytext">
 <p>some <b>caption</b> <a href="/wiki/Main_Page" title="Main Page">Main Page</a>
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 105px"><div style="width: 105px">
 			<div class="thumb" style="width: 100px;"><div style="margin:31px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="Foobar.jpg" src="http://example.com/images/thumb/3/3a/Foobar.jpg/70px-Foobar.jpg" width="70" height="8" /></a></div></div>
@@ -10552,8 +10525,7 @@ image:foobar.jpg|Blabla|alt=This is a foo-bar.|blabla.
 			<div class="thumb" style="width: 100px;"><div style="margin:31px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="This is a foo-bar." src="http://example.com/images/thumb/3/3a/Foobar.jpg/70px-Foobar.jpg" width="70" height="8" /></a></div></div>
 			<div class="gallerytext">
 <p>Blabla|blabla.
-</p>
-			</div>
+			</p></div>
 		</div></li>
 </ul>
 
@@ -10572,15 +10544,13 @@ File:foobar.jpg|{{Test|unamedParam|alt=param}}|alt=galleryalt
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="galleryalt" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p><a href="/wiki/File:Foobar.jpg" class="image" title="desc"><img alt="inneralt" src="http://example.com/images/thumb/3/3a/Foobar.jpg/20px-Foobar.jpg" width="20" height="2" srcset="http://example.com/images/thumb/3/3a/Foobar.jpg/30px-Foobar.jpg 1.5x, http://example.com/images/thumb/3/3a/Foobar.jpg/40px-Foobar.jpg 2x" /></a>
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="galleryalt" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p>This is a test template
-</p>
-			</div>
+			</p></div>
 		</div></li>
 </ul>
 
@@ -10602,30 +10572,26 @@ File:Foobar.jpg
 			<div class="gallerytext">
 <p><a href="/wiki/File:Nonexistant.jpg" title="File:Nonexistant.jpg">Nonexistant.jpg</a><br />
 caption
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div style="height: 150px;">Nonexistant.jpg</div>
 			<div class="gallerytext">
 <p><a href="/wiki/File:Nonexistant.jpg" title="File:Nonexistant.jpg">Nonexistant.jpg</a><br />
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p><a href="/wiki/File:Foobar.jpg" title="File:Foobar.jpg">Foobar.jpg</a><br />
 some <b>caption</b> <a href="/wiki/Main_Page" title="Main Page">Main Page</a>
-</p>
-			</div>
+			</p></div>
 		</div></li>
 		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="/wiki/File:Foobar.jpg" class="image"><img alt="Foobar.jpg" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p><a href="/wiki/File:Foobar.jpg" title="File:Foobar.jpg">Foobar.jpg</a><br />
-</p>
-			</div>
+			</p></div>
 		</div></li>
 </ul>
 
@@ -10699,8 +10665,7 @@ __FORCETOC__ override
 __NEWSECTIONLINK__
 __FORCETOC__
 !! result
-<p><br />
-</p>
+<p><br /></p>
 !! end
 
 !! test
@@ -11178,13 +11143,15 @@ bar
  baz
 !! result
 <blockquote>
-foo
-</blockquote>
+<p>foo
+</p></blockquote>
 <p>bar
-</p>
-<pre>baz
+</p><pre>baz
 </pre>
 !! end
+-------
+
+-------
 
 !! test
 Bug 8293: Use of center tag ruins paragraph formatting
@@ -11199,11 +11166,9 @@ bar
 !! result
 <center>
 <p>foo
-</p>
-</center>
+</p></center>
 <p>bar
-</p>
-<pre>baz
+</p><pre>baz
 </pre>
 !! end
 
@@ -11628,8 +11593,7 @@ x
 y
 !! result
 <p>x
-</p>
-<table>
+</p><table>
 <tr>
 <td> 1 </td>
 <td> 2
@@ -11704,8 +11668,7 @@ Morwen/13: Unclosed link followed by heading
 ==heading==
 !! result
 <p>[[link
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: heading">edit</a>]</span> <span class="mw-headline" id="heading">heading</span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: heading">edit</a>]</span> <span class="mw-headline" id="heading">heading</span></h2>
 
 !! end
 
@@ -11716,8 +11679,7 @@ HHP2.1: Heuristics for headings in preprocessor parenthetical structures
 =heading=
 !! result
 <p>{{foo|
-</p>
-<h1> <span class="mw-headline" id="heading">heading</span></h1>
+</p><h1> <span class="mw-headline" id="heading">heading</span></h1>
 
 !! end
 
@@ -11728,8 +11690,7 @@ HHP2.2: Heuristics for headings in preprocessor parenthetical structures
 ==heading==
 !! result
 <p>{{foo|
-</p>
-<h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: heading">edit</a>]</span> <span class="mw-headline" id="heading">heading</span></h2>
+</p><h2><span class="editsection">[<a href="/index.php?title=Parser_test&amp;action=edit&amp;section=1" title="Edit section: heading">edit</a>]</span> <span class="mw-headline" id="heading">heading</span></h2>
 
 !! end
 
@@ -11751,7 +11712,7 @@ Paragraphs inside divs (no extra line breaks)
 Line two</div>
 !! result
 <div>Line one
-Line two</div>
+<p>Line two</p></div>
 
 !! end
 
@@ -11765,8 +11726,7 @@ Line two</div>
 !! result
 <div>
 <p>Line one
-</p>
-Line two</div>
+</p><p>Line two</p></div>
 
 !! end
 
@@ -11780,8 +11740,7 @@ Line two
 !! result
 <div>Line one
 <p>Line two
-</p>
-</div>
+</p></div>
 
 !! end
 
@@ -11797,8 +11756,7 @@ Line two
 <div>
 <p>Line one
 </p><p>Line two
-</p>
-</div>
+</p></div>
 
 !! end
 
@@ -11819,11 +11777,8 @@ B</strong>
 # Bug 6200: <blockquote> should behave like <div> with respect to line breaks
 !! test
 Bug 6200: paragraphs inside blockquotes (no extra line breaks)
-!! options
-disabled
 !! input
 <blockquote>Line one
-
 Line two</blockquote>
 !! result
 <blockquote>Line one
@@ -11833,8 +11788,6 @@ Line two</blockquote>
 
 !! test
 Bug 6200: paragraphs inside blockquotes (extra line break on open)
-!! options
-disabled
 !! input
 <blockquote>
 Line one
@@ -11843,15 +11796,12 @@ Line two</blockquote>
 !! result
 <blockquote>
 <p>Line one
-</p>
-Line two</blockquote>
+</p><p>Line two</p></blockquote>
 
 !! end
 
 !! test
 Bug 6200: paragraphs inside blockquotes (extra line break on close)
-!! options
-disabled
 !! input
 <blockquote>Line one
 
@@ -11860,15 +11810,12 @@ Line two
 !! result
 <blockquote>Line one
 <p>Line two
-</p>
-</blockquote>
+</p></blockquote>
 
 !! end
 
 !! test
 Bug 6200: paragraphs inside blockquotes (extra line break on open and close)
-!! options
-disabled
 !! input
 <blockquote>
 Line one
@@ -11879,8 +11826,7 @@ Line two
 <blockquote>
 <p>Line one
 </p><p>Line two
-</p>
-</blockquote>
+</p></blockquote>
 
 !! end
 
@@ -11892,7 +11838,7 @@ Paragraphs inside blockquotes/divs (no extra line breaks)
 Line two</div></blockquote>
 !! result
 <blockquote><div>Line one
-Line two</div></blockquote>
+<p>Line two</p></div></blockquote>
 
 !! end
 
@@ -11906,8 +11852,7 @@ Line two</div></blockquote>
 !! result
 <blockquote><div>
 <p>Line one
-</p>
-Line two</div></blockquote>
+</p><p>Line two</p></div></blockquote>
 
 !! end
 
@@ -11921,8 +11866,7 @@ Line two
 !! result
 <blockquote><div>Line one
 <p>Line two
-</p>
-</div></blockquote>
+</p></div></blockquote>
 
 !! end
 
@@ -11938,8 +11882,7 @@ Line two
 <blockquote><div>
 <p>Line one
 </p><p>Line two
-</p>
-</div></blockquote>
+</p></div></blockquote>
 
 !! end
 
@@ -12384,8 +12327,7 @@ HTML5 data attributes
 <p data-abc-def_hij="">Quuz</p>
 !! result
 <p><span data-foo="bar">Baz</span>
-</p>
-<p data-abc-def_hij="">Quuz</p>
+</p><p data-abc-def_hij="">Quuz</p>
 
 !! end
 
@@ -12853,8 +12795,7 @@ File:foobar.jpg|caption|alt=galleryalt|link=InterWikiLink
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="/wiki/InterWikiLink"><img alt="galleryalt" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p>caption
-</p>
-			</div>
+			</p></div>
 		</div></li>
 </ul>
 
@@ -12872,8 +12813,7 @@ File:foobar.jpg|caption|alt=galleryalt|link=http://www.example.org
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="http://www.example.org"><img alt="galleryalt" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p>caption
-</p>
-			</div>
+			</p></div>
 		</div></li>
 </ul>
 
@@ -12891,8 +12831,7 @@ File:foobar.jpg|caption|alt=galleryalt|link=" onclick="alert('malicious javascri
 			<div class="thumb" style="width: 150px;"><div style="margin:68px auto;"><a href="/wiki/%22_onclick%3D%22alert(%27malicious_javascript_code!%27);"><img alt="galleryalt" src="http://example.com/images/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg" width="120" height="14" /></a></div></div>
 			<div class="gallerytext">
 <p>caption
-</p>
-			</div>
+			</p></div>
 		</div></li>
 </ul>
 

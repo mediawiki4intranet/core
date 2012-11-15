@@ -341,7 +341,12 @@ p.mw-ipb-conveniencelinks,
 p.mw-protect-editreasons,
 p.mw-filedelete-editreasons,
 p.mw-delete-editreasons,
-p.mw-revdel-editreasons {
+p.mw-revdel-editreasons,
+div.paragraph.mw-ipb-conveniencelinks,
+div.paragraph.mw-protect-editreasons,
+div.paragraph.mw-filedelete-editreasons,
+div.paragraph.mw-delete-editreasons,
+div.paragraph.mw-revdel-editreasons {
 	font-size: 90%;
 	text-align: right;
 }
@@ -593,7 +598,8 @@ table.collapsed tr.collapsable {
 	margin-bottom: 1em;
 }
 
-.previewnote p {
+.previewnote p,
+.previewnote div.paragraph {
 	text-indent: 3em;
 	margin: 0.8em 0;
 }

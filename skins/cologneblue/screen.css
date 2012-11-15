@@ -36,20 +36,20 @@ body {
 	z-index: 99;
 }
 
-#article, #article td, #article th, #article p {
+#article, #article td, #article th, #article p, #article div.paragraph {
 	font-family: Verdana, Arial, sans-serif;
 	font-size: 10pt;
 	color: black;
 }
 
-#article p {
+#article p, #article div.paragraph {
 	padding-top: 0;
 	padding-bottom: 0;
 	margin-top: 1ex;
 	margin-bottom: 0;
 }
 
-p, pre, .mw-code, td, th, li, dd, dt {
+p, div.paragraph, pre, .mw-code, td, th, li, dd, dt {
 	line-height: 12pt;
 }
 
@@ -144,7 +144,7 @@ h1#firstHeading {
 	margin-bottom: 0;
 }
 
-#article p.subtitle, #article p.subpages, #article p.tagline {
+#article p.subtitle, #article p.subpages, #article p.tagline, #article div.paragraph.subtitle, #article div.paragraph.subpages, #article div.paragraph.tagline {
 	color: #666666;
 	font-size: 11pt;
 	font-weight: bold;
@@ -235,7 +235,7 @@ input.mw-searchInput {
 #toplinks a {
 	font-size: 10pt;
 }
-#toplinks p {
+#toplinks p, #toplinks div.paragraph {
 	position: absolute;
 	right: 0;
 	margin: 0;
