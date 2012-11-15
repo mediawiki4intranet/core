@@ -712,6 +712,9 @@ class SkinTemplate extends Skin {
 			} else {
 				$query = 'action=edit&redlink=1';
 			}
+			if ( $title->isTalkPage() ) {
+				$query .= '&section=new';
+			}
 		}
 
 		// wfMessageFallback will nicely accept $message as an array of fallbacks

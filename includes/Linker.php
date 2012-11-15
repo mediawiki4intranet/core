@@ -299,6 +299,15 @@ class Linker {
 			$proto = PROTO_RELATIVE;
 		}
 
+		if ( in_array( 'broken', $options ) && $target->isTalkPage()
+			&& !empty( $query['action'] ) && $query['action'] == 'edit' ) {
+			if ( !array_key_exists( 'section', $query ) ) {
+				$query['section'] = 'new';
+			} elseif ( !$query['section'] ) {
+				unset( $query['section'] );
+			}
+		}
+
 		$ret = $target->getLinkURL( $query, false, $proto );
 		return $ret;
 	}
