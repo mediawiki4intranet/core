@@ -102,7 +102,7 @@ interface PPFrame {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function cachedExpand( $key, $root, $flags = 0 );
+	public function cachedExpand( $key, $root, $flags = 0, $headLevel = 0 );
 
 	/**
 	 * Expand a document tree node
@@ -110,7 +110,7 @@ interface PPFrame {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function expand( $root, $flags = 0 );
+	public function expand( $root, $flags = 0, $headLevel = 0 );
 
 	/**
 	 * Implode with flags for expand()

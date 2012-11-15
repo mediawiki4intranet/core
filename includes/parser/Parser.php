@@ -3451,6 +3451,7 @@ class Parser {
 	 *   $piece['title']: the title, i.e. the part before the |
 	 *   $piece['parts']: the parameter array
 	 *   $piece['lineStart']: whether the brace was at the start of a line
+	 *   $piece['headLevel']: the shift value for all heading levels
 	 * @param PPFrame $frame The current frame, contains template arguments
 	 * @throws Exception
 	 * @return string The text of the template
@@ -3471,6 +3472,10 @@ class Parser {
 		$isChildObj = false;
 		// $text is a DOM node needing expansion in the current frame
 		$isLocalObj = false;
+
+		if ( empty( $piece['headLevel'] ) ) {
+			$piece['headLevel'] = 0;
+		}
 
 		# Title object, where $text came from
 		$title = false;
@@ -3719,17 +3724,17 @@ class Parser {
 			$newFrame = $frame->newChild( $args, $title );
 
 			if ( $nowiki ) {
-				$text = $newFrame->expand( $text, PPFrame::RECOVER_ORIG );
+				$text = $newFrame->expand( $text, PPFrame::RECOVER_ORIG, $piece['headLevel'] );
 			} elseif ( $titleText !== false && $newFrame->isEmpty() ) {
 				# Expansion is eligible for the empty-frame cache
-				$text = $newFrame->cachedExpand( $titleText, $text );
+				$text = $newFrame->cachedExpand( $titleText, $text, 0, $piece['headLevel'] );
 			} else {
 				# Uncached expansion
-				$text = $newFrame->expand( $text );
+				$text = $newFrame->expand( $text, 0, $piece['headLevel'] );
 			}
 		}
 		if ( $isLocalObj && $nowiki ) {
-			$text = $frame->expand( $text, PPFrame::RECOVER_ORIG );
+			$text = $frame->expand( $text, PPFrame::RECOVER_ORIG, $piece['headLevel'] );
 			$isLocalObj = false;
 		}
 

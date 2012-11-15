@@ -371,6 +371,12 @@ class Preprocessor_DOM implements Preprocessor {
 					continue;
 				}
 
+				if ( strtolower( substr( $text, $i, strlen( '<enableheadshift>' ) ) ) == '<enableheadshift>' ) {
+					$accum .= '<enableHeadShift><ignore>&lt;enableheadshift&gt;</ignore></enableHeadShift>';
+					$i += strlen( '<enableheadshift>' );
+					continue;
+				}
+
 				// Determine element name
 				if ( !preg_match( $elementsRegex, $text, $matches, 0, $i + 1 ) ) {
 					// Element name missing or not listed
@@ -1062,9 +1068,9 @@ class PPFrame_DOM implements PPFrame {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function cachedExpand( $key, $root, $flags = 0 ) {
+	public function cachedExpand( $key, $root, $flags = 0, $headLevel = 0 ) {
 		// we don't have a parent, so we don't have a cache
-		return $this->expand( $root, $flags );
+		return $this->expand( $root, $flags, $headLevel );
 	}
 
 	/**
@@ -1073,7 +1079,7 @@ class PPFrame_DOM implements PPFrame {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function expand( $root, $flags = 0 ) {
+	public function expand( $root, $flags = 0, $headshift = 0 ) {
 		static $expansionDepth = 0;
 		if ( is_string( $root ) ) {
 			return $root;
@@ -1109,6 +1115,8 @@ class PPFrame_DOM implements PPFrame {
 		$outStack = array( '', '' );
 		$iteratorStack = array( false, $root );
 		$indexStack = array( 0, 0 );
+		$headlevel = $headshift;
+		$headshiftEnabled = false;
 
 		while ( count( $iteratorStack ) > 1 ) {
 			$level = count( $outStack ) - 1;
@@ -1158,8 +1166,40 @@ class PPFrame_DOM implements PPFrame {
 			} elseif ( is_array( $contextNode ) || $contextNode instanceof DOMNodeList ) {
 				$newIterator = $contextNode;
 			} elseif ( $contextNode instanceof DOMNode ) {
+				if ( $contextNode->nodeName == 'h' ) {
+					# Remember heading levels
+					$mn = $contextNode->attributes->getNamedItem( 'level' );
+					if ( $mn ) {
+						if ( $headshift > 0 && $headshiftEnabled ) {
+							$mn->value = 0+$headshift+$mn->value;
+							$headshiftlocal = $headshift;
+							if ( $mn->value > 6 ) {
+								$headshiftlocal = $headshift-$mn->value+6;
+								$mn->value = 6;
+							}
+							if ( $contextNode->childNodes->length <= 1 ) {
+								$contextNode->nodeValue =
+									str_repeat( '=', $headshiftlocal ) .
+									trim( $contextNode->nodeValue ) .
+									str_repeat( '=', $headshiftlocal );
+							} else {
+								$contextNode->childNodes->item( 0 )->nodeValue =
+									str_repeat( '=', $headshiftlocal ) .
+									trim( $contextNode->childNodes->item( 0 )->nodeValue );
+								$contextNode->childNodes->item( $contextNode->childNodes->length-1 )->nodeValue =
+									trim( $contextNode->childNodes->item( $contextNode->childNodes->length-1 )->nodeValue ) .
+									str_repeat( '=', $headshiftlocal );
+							}
+						}
+						$headlevel = 0+$mn->value;
+					}
+				}
 				if ( $contextNode->nodeType == XML_TEXT_NODE ) {
 					$out .= $contextNode->nodeValue;
+				} elseif ( $contextNode->nodeName == 'enableHeadShift' ) {
+					$headshiftEnabled = true;
+					# Generic recursive expansion
+					$newIterator = $contextNode->childNodes;
 				} elseif ( $contextNode->nodeName == 'template' ) {
 					# Double-brace expansion
 					$xpath = new DOMXPath( $contextNode->ownerDocument );
@@ -1171,6 +1211,7 @@ class PPFrame_DOM implements PPFrame {
 					} else {
 						$lineStart = $contextNode->getAttribute( 'lineStart' );
 						$params = array(
+							'headLevel' => $headlevel,
 							'title' => new PPNode_DOM( $title ),
 							'parts' => new PPNode_DOM( $parts ),
 							'lineStart' => $lineStart );
@@ -1617,13 +1658,13 @@ class PPTemplateFrame_DOM extends PPFrame_DOM {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function cachedExpand( $key, $root, $flags = 0 ) {
-		if ( isset( $this->parent->childExpansionCache[$key] ) ) {
-			return $this->parent->childExpansionCache[$key];
+	public function cachedExpand( $key, $root, $flags = 0, $headLevel = 0 ) {
+		if ( isset( $this->parent->childExpansionCache[$key.'#'.$headLevel] ) ) {
+			return $this->parent->childExpansionCache[$key.'#'.$headLevel];
 		}
-		$retval = $this->expand( $root, $flags );
+		$retval = $this->expand( $root, $flags, $headLevel );
 		if ( !$this->isVolatile() ) {
-			$this->parent->childExpansionCache[$key] = $retval;
+			$this->parent->childExpansionCache[$key.'#'.$headLevel] = $retval;
 		}
 		return $retval;
 	}

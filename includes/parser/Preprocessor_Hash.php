@@ -289,6 +289,13 @@ class Preprocessor_Hash implements Preprocessor {
 					continue;
 				}
 
+				if ( strtolower( substr( $text, $i, strlen( '<enableheadshift>' ) ) ) == '<enableheadshift>' ) {
+					$accum->addNodeWithText( 'enableHeadShift', '' );
+					$accum->addNodeWithText( 'ignore', '<enableheadshift>' );
+					$i += strlen( '<enableheadshift>' );
+					continue;
+				}
+
 				// Determine element name
 				if ( !preg_match( $elementsRegex, $text, $matches, 0, $i + 1 ) ) {
 					// Element name missing or not listed
@@ -1007,9 +1014,9 @@ class PPFrame_Hash implements PPFrame {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function cachedExpand( $key, $root, $flags = 0 ) {
+	public function cachedExpand( $key, $root, $flags = 0, $headLevel = 0 ) {
 		// we don't have a parent, so we don't have a cache
-		return $this->expand( $root, $flags );
+		return $this->expand( $root, $flags, $headLevel );
 	}
 
 	/**
@@ -1018,7 +1025,7 @@ class PPFrame_Hash implements PPFrame {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function expand( $root, $flags = 0 ) {
+	public function expand( $root, $flags = 0, $headshift = 0 ) {
 		static $expansionDepth = 0;
 		if ( is_string( $root ) ) {
 			return $root;
@@ -1046,6 +1053,8 @@ class PPFrame_Hash implements PPFrame {
 		$outStack = array( '', '' );
 		$iteratorStack = array( false, $root );
 		$indexStack = array( 0, 0 );
+		$headlevel = $headshift;
+		$headshiftEnabled = false;
 
 		while ( count( $iteratorStack ) > 1 ) {
 			$level = count( $outStack ) - 1;
@@ -1101,6 +1110,7 @@ class PPFrame_Hash implements PPFrame {
 							$bits['parts']
 						);
 					} else {
+						$bits['headLevel'] = $headlevel;
 						$ret = $this->parser->braceSubstitution( $bits, $this );
 						if ( isset( $ret['object'] ) ) {
 							$newIterator = $ret['object'];
@@ -1108,6 +1118,8 @@ class PPFrame_Hash implements PPFrame {
 							$out .= $ret['text'];
 						}
 					}
+				} elseif ( $contextNode->name == 'enableHeadShift' ) {
+					$headshiftEnabled = true;
 				} elseif ( $contextNode->name == 'tplarg' ) {
 					# Triple-brace expansion
 					$bits = $contextNode->splitTemplate();
@@ -1178,11 +1190,25 @@ class PPFrame_Hash implements PPFrame {
 					}
 				} elseif ( $contextNode->name == 'h' ) {
 					# Heading
+					for ( $child = $contextNode->firstChild; $child; $child = $child->nextSibling ) {
+						if ( !isset( $child->name ) ) {
+							# Shift heading level by modifying text
+							if ( $headshiftEnabled && $headshiftlocal > 0 ) {
+								$child->value = str_repeat( '=', $headshiftlocal ) .
+									$child->value . str_repeat( '=', $headshiftlocal );
+							}
+						} elseif ( $child->name == 'level' ) {
+							$n = $child->value;
+							$headlevel = $child->value = min( 6, $headshift + $n );
+							$headshiftlocal = $child->value - $n;
+						}
+					}
+
 					if ( $this->parser->ot['html'] ) {
 						# Expand immediately and insert heading index marker
 						$s = '';
 						for ( $node = $contextNode->firstChild; $node; $node = $node->nextSibling ) {
-							$s .= $this->expand( $node, $flags );
+							$s .= $this->expand( $node, $flags, $headshift );
 						}
 
 						$bits = $contextNode->splitHeading();
@@ -1536,13 +1562,13 @@ class PPTemplateFrame_Hash extends PPFrame_Hash {
 	 * @param int $flags
 	 * @return string
 	 */
-	public function cachedExpand( $key, $root, $flags = 0 ) {
-		if ( isset( $this->parent->childExpansionCache[$key] ) ) {
-			return $this->parent->childExpansionCache[$key];
+	public function cachedExpand( $key, $root, $flags = 0, $headLevel = 0 ) {
+		if ( isset( $this->parent->childExpansionCache[$key.'#'.$headLevel] ) ) {
+			return $this->parent->childExpansionCache[$key.'#'.$headLevel];
 		}
-		$retval = $this->expand( $root, $flags );
+		$retval = $this->expand( $root, $flags, $headLevel );
 		if ( !$this->isVolatile() ) {
-			$this->parent->childExpansionCache[$key] = $retval;
+			$this->parent->childExpansionCache[$key.'#'.$headLevel] = $retval;
 		}
 		return $retval;
 	}
