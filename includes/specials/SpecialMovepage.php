@@ -86,7 +86,7 @@ class MovePageForm extends UnlistedSpecialPage {
 		$this->moveTalk = $wgRequest->getBool( 'wpMovetalk', $def );
 		$this->fixRedirects = $wgRequest->getBool( 'wpFixRedirects', $def );
 		$this->leaveRedirect = $wgRequest->getBool( 'wpLeaveRedirect', $def );
-		$this->moveSubpages = $wgRequest->getBool( 'wpMovesubpages', false );
+		$this->moveSubpages = $wgRequest->getBool( 'wpMovesubpages', true );
 		$this->deleteAndMove = $wgRequest->getBool( 'wpDeleteAndMove' ) && $wgRequest->getBool( 'wpConfirm' );
 		$this->moveOverShared = $wgRequest->getBool( 'wpMoveOverSharedFile', false );
 		$this->watch = $wgRequest->getCheck( 'wpWatch' ) && $wgUser->isLoggedIn();
