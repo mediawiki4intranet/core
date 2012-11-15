@@ -367,6 +367,8 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 	 * @return bool|ResultWrapper result or false (for Recentchangeslinked only)
 	 */
 	public function doMainQuery( $conds, $opts ) {
+		global $wgAllowCategorizedRecentChanges;
+
 		$tables = array( 'recentchanges' );
 		$join_conds = array();
 		$query_options = array(
@@ -380,7 +382,28 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 		$invert = $opts['invert'];
 		$associated = $opts['associated'];
 
-		$fields = RecentChange::selectFields();
+		$fields = array( $dbr->tableName( 'recentchanges' ) . '.*' ); // all rc columns
+
+		$categories = trim( $opts['categories'], " \t\n\r\0\x0B|" );
+		// JOIN on categories
+		if( $wgAllowCategorizedRecentChanges && $categories &&
+		    ( $categories = preg_split( '/[\s\|]*\|[\s\|]*/', $categories ) ) ) {
+			foreach( $categories as &$cat ) {
+				$cat = str_replace( ' ', '_', $cat );
+			}
+			$tables[] = 'page';
+			$fields[] = 'page_latest';
+			$join_conds['page'] = array( 'INNER JOIN', 'rc_cur_id=page_id' );
+			if( $opts['categories_any'] ) {
+				$conds[] = "EXISTS (".$dbr->selectSQLText( 'categorylinks', '*', array( 'cl_from=page_id', 'cl_to' => $categories ) ).")";
+			} else {
+				foreach( $categories as $i => $cat ) {
+					$tables["cl$i"] = 'categorylinks';
+					$join_conds["cl$i"] = array( "INNER JOIN", array( "cl$i.cl_from=page_id", "cl$i.cl_to" => $cat ) );
+				}
+			}
+		}
+
 		// JOIN on watchlist for users
 		if ( $uid ) {
 			$tables[] = 'watchlist';
@@ -392,7 +415,7 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 				'wl_namespace=rc_namespace'
 			));
 		}
-		if ( $this->getUser()->isAllowed( 'rollback' ) ) {
+		if ( $this->getUser()->isAllowed( 'rollback' ) && empty( $join_conds['page'] ) ) {
 			$tables[] = 'page';
 			$fields[] = 'page_latest';
 			$join_conds['page'] = array( 'LEFT JOIN', 'rc_cur_id=page_id' );
@@ -489,7 +512,7 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 			$this->getOutput()->setFeedAppendQuery( false );
 		}
 
-		if( $wgAllowCategorizedRecentChanges ) {
+		if( !empty( $wgAllowCategorizedRecentChanges ) ) {
 			$this->filterByCategories( $rows, $opts );
 		}
 
@@ -548,20 +571,7 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 	 * @return string
 	 */
 	public function getFeedQuery() {
-		global $wgFeedLimit;
-
-		$this->getOptions()->validateIntBounds( 'limit', 0, $wgFeedLimit );
-		$options = $this->getOptions()->getChangedValues();
-
-		// wfArrayToCgi() omits options set to null or false
-		foreach ( $options as &$value ) {
-			if ( $value === false ) {
-				$value = '0';
-			}
-		}
-		unset( $value );
-
-		return wfArrayToCgi( $options );
+		return http_build_query( $this->getOptions()->getChangedValues() );
 	}
 
 	/**
@@ -763,6 +773,7 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 			$a2r[$id][] = $k;
 			$rowsarr[$k] = $r;
 		}
+		$rows = $rowsarr;
 
 		# Shortcut?
 		if( !count( $articles ) || !count( $cats ) ) {
@@ -775,14 +786,14 @@ class SpecialRecentChanges extends IncludableSpecialPage {
 		$match = $c->run();
 
 		# Filter
-		$newrows = array();
+		$rowsarr = array();
 		foreach( $match as $id ) {
 			foreach( $a2r[$id] as $rev ) {
 				$k = $rev;
-				$newrows[$k] = $rowsarr[$k];
+				$rowsarr[$k] = $rows[$k];
 			}
 		}
-		$rows = $newrows;
+		$rows = $rowsarr;
 	}
 
 	/**
