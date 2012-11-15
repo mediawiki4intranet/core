@@ -4408,7 +4408,7 @@ class Parser {
 	 * @private
 	 */
 	public function formatHeadings( $text, $origText, $isMain = true ) {
-		global $wgMaxTocLevel, $wgExperimentalHtmlIds;
+		global $wgMaxTocLevel, $wgExperimentalHtmlIds, $wgDotAfterTocnumber;
 
 		# Inhibit editsection links if requested in the page
 		if ( isset( $this->mDoubleUnderscores['noeditsection'] ) ) {
@@ -4555,6 +4555,9 @@ class Parser {
 					$numbering .= $this->getTargetLanguage()->formatNum( $sublevelCount[$i] );
 					$dot = 1;
 				}
+			}
+			if ( $wgDotAfterTocnumber ) {
+				$numbering .= '.';
 			}
 
 			# The safe header is a version of the header text safe to use for links
