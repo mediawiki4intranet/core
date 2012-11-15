@@ -2586,19 +2586,6 @@ class EditPage {
 
 		$this->showEditTools();
 
-		$wgOut->addHTML( $this->editFormTextAfterTools . "\n" );
-
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'templatesUsed' ),
-			Linker::formatTemplates( $this->getTemplates(), $this->preview, $this->section != '' ) ) );
-
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'hiddencats' ),
-			Linker::formatHiddenCategories( $this->mArticle->getHiddenCategories() ) ) );
-
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'limitreport' ),
-			self::getPreviewLimitReport( $this->mParserOutput ) ) );
-
-		$wgOut->addModules( 'mediawiki.action.edit.collapsibleFooter' );
-
 		if ( $this->isConflict ) {
 			try {
 				$this->showConflict();
@@ -2618,6 +2605,19 @@ class EditPage {
 		// parameter sent in order to be of use, so do not move me.
 		$wgOut->addHTML( Html::hidden( 'wpUltimateParam', true ) );
 		$wgOut->addHTML( $this->editFormTextBottom . "\n</form>\n" );
+
+		$wgOut->addHTML( $this->editFormTextAfterTools . "\n" );
+
+		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'templatesUsed' ),
+			Linker::formatTemplates( $this->getTemplates(), $this->preview, $this->section != '' ) ) );
+
+		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'hiddencats' ),
+			Linker::formatHiddenCategories( $this->mArticle->getHiddenCategories() ) ) );
+
+		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'limitreport' ),
+			self::getPreviewLimitReport( $this->mParserOutput ) ) );
+
+		$wgOut->addModules( 'mediawiki.action.edit.collapsibleFooter' );
 
 		if ( !$wgUser->getOption( 'previewontop' ) ) {
 			$this->displayPreviewArea( $previewOutput, false );
@@ -3272,7 +3272,10 @@ HTML
 	 * @return string
 	 */
 	public static function getCopyrightWarning( $title, $format = 'plain' ) {
-		global $wgRightsText;
+		global $wgRightsText, $wgNoCopyrightWarnings;
+		if ( $wgNoCopyrightWarnings ) {
+			return '';
+		}
 		if ( $wgRightsText ) {
 			$copywarnMsg = array( 'copyrightwarning',
 				'[[' . wfMessage( 'copyrightpage' )->inContentLanguage()->text() . ']]',

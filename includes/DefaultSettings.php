@@ -6377,6 +6377,11 @@ $wgMaxCredits = 0;
  */
 $wgShowCreditsIfMax = true;
 
+/**
+ * Copyright warnings are hidden if this variable is true.
+ */
+$wgNoCopyrightWarnings = false;
+
 /** @} */ # end of copyright and credits settings }
 
 /************************************************************************//**
