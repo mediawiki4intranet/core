@@ -6390,6 +6390,9 @@ $wgSeleniumConfigFile = null;
 $wgDBtestuser = ''; //db user that has permission to create and drop the test databases only
 $wgDBtestpassword = '';
 
+/** Defines that MergeConflicts extension patch was applied to this MW installation */
+define ( 'MW_PATCH_MERGE_CONFLICTS', 1 );
+
 /**
  * Associative array mapping namespace IDs to the name of the content model pages in that namespace should have by
  * default (use the CONTENT_MODEL_XXX constants). If no special content type is defined for a given namespace,
