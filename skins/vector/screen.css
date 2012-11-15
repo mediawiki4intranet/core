@@ -807,7 +807,14 @@ p {
 	margin: .4em 0 .5em 0;
 	line-height: 1.5em;
 }
+div.paragraph {
+	margin: .4em 0 .5em 0;
+	line-height: 1.5em;
+}
 p img {
+	margin: 0;
+}
+div.paragraph img {
 	margin: 0;
 }
 q {
@@ -941,11 +948,13 @@ select {
 	border: 0;
 }
 div.floatright p { font-style: italic; }
+div.floatright div.paragraph { font-style: italic; }
 /* @noflip */div.floatleft, table.floatleft {
 	margin: 0 .5em .5em 0;
 	border: 0;
 }
 div.floatleft p { font-style: italic; }
+div.floatleft div.paragraph { font-style: italic; }
 /* Thumbnails */
 div.thumb {
 	margin-bottom: .5em;

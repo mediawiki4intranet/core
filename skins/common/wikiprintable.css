@@ -43,4 +43,5 @@ a.interwiki, a.external { color: #3333BB; text-decoration: none; }
 h1.pagetitle { padding-bottom: 0; margin-bottom: 0; }
 i.link, u.link { color: #000066; }
 p.subtitle { padding-top: 0; margin-top: 0; }
+div.paragraph.subtitle { padding-top: 0; margin-top: 0; }
 */

@@ -153,8 +153,15 @@ hr.sep {
 p.subpages {
 	font-size: small;
 }
+div.paragraph.subpages {
+	font-size: small;
+}
 
 p.subtitle {
+	padding-top: 0;
+	margin-top: 0;
+}
+div.paragraph.subtitle {
 	padding-top: 0;
 	margin-top: 0;
 }

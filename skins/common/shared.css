@@ -214,6 +214,12 @@ p.mw-revdel-editreasons {
 	font-size: 90%;
 	text-align: right;
 }
+p.mw-ipb-conveniencelinks, div.paragraph.mw-protect-editreasons,
+p.mw-filedelete-editreasons, p.mw-delete-editreasons,
+p.mw-revdel-editreasons {
+	font-size: 90%;
+	text-align: right;
+}
 
 /*
  * OpenSearch ajax suggestions
@@ -449,6 +455,10 @@ table.collapsed tr.collapsable {
 }
 
 .previewnote p {
+	text-indent: 3em;
+	margin: 0.8em 0;
+}
+.previewnote div.paragraph {
 	text-indent: 3em;
 	margin: 0.8em 0;
 }

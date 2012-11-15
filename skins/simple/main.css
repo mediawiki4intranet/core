@@ -84,7 +84,12 @@ p {
     margin: 0.4em 0em 0.5em 0em;
     line-height: 1.5em;
 }
+div.paragraph {
+    margin: 0.4em 0em 0.5em 0em;
+    line-height: 1.5em;
+}
 p img { margin: 0; }
+div.paragraph img { margin: 0; }
 
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
@@ -260,11 +265,13 @@ div.tocindent {
     border-width: 0.5em 0 0.8em 1.4em;
 }
 div.floatright p { font-style: italic; }
+div.floatright div.paragraph { font-style: italic; }
 /* @noflip */div.floatleft, table.floatleft {
     margin: 0.3em 0.5em 0.5em 0;
     border-width: 0.5em 1.4em 0.8em 0;
 }
 div.floatleft p { font-style: italic; }
+div.floatleft div.paragraph { font-style: italic; }
 /* thumbnails */
 div.thumb {
     margin-bottom: 0.5em;

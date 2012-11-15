@@ -49,6 +49,9 @@ td, h3, p,h1,pre {
 #menu p { 
 	font-size:11px;
 }
+#menu div.paragraph { 
+	font-size:11px;
+}
 
 .dent {
 	margin-left:64px;

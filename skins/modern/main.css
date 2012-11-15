@@ -286,6 +286,9 @@ div.printfooter {
 p {
 	margin: 1em 0 1em 0;
 }
+div.paragraph {
+	margin: 1em 0 1em 0;
+}
 
 hr {
 	height: 1px;
@@ -486,6 +489,7 @@ h1, h2, h3, h4, h5, h6 {
 */
 }
 div.floatright p { font-style: italic; }
+div.floatright div.paragraph { font-style: italic; }
 /* @noflip */div.floatleft, table.floatleft {
 	margin: 0 .5em .5em 0;
 	border: 0;
@@ -496,6 +500,7 @@ div.floatright p { font-style: italic; }
 */
 }
 div.floatleft p { font-style: italic; }
+div.floatleft div.paragraph { font-style: italic; }
 /* thumbnails */
 div.thumb {
 	margin-bottom: .5em;
@@ -655,6 +660,10 @@ span.updatedmarker {
 }
 
 .previewnote p {
+	margin: 0;
+	padding: 0;
+}
+.previewnote div.paragraph {
 	margin: 0;
 	padding: 0;
 }
@@ -840,6 +849,10 @@ pre {
 }
 
 .mw-topbox p {
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+}
+.mw-topbox div.paragraph {
 	padding: 0 0 0 0;
 	margin: 0 0 0 0;
 }

@@ -35,6 +35,9 @@ div.floatright {
 div.floatright p {
 	font-style: italic;
 }
+div.floatright div.paragraph {
+	font-style: italic;
+}
 div.floatleft {
 	float: left;
 	clear: left;
@@ -42,6 +45,9 @@ div.floatleft {
 	margin: 0.5em 1.4em 0.8em 0;
 }
 div.floatleft p {
+	font-style: italic;
+}
+div.floatleft div.paragraph {
 	font-style: italic;
 }
 div.center {
@@ -161,6 +167,9 @@ p, .documentDescription {
 }
 
 .tocindent p {
+	margin: 0 0 0 0 ! important;
+}
+.tocindent div.paragraph {
 	margin: 0 0 0 0 ! important;
 }
 
@@ -342,6 +351,10 @@ h2, h3, h4, h5, h6, h7 {
 	page-break-after: avoid;
 }
 p {
+	widows: 3;
+	orphans: 3;
+}
+div.paragraph {
 	widows: 3;
 	orphans: 3;
 }

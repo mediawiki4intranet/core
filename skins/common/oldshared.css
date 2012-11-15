@@ -41,6 +41,9 @@ div.floatright {
 div.floatright p {
 	font-style: italic;
 }
+div.floatright div.paragraph {
+	font-style: italic;
+}
 
 /* @noflip */
 div.floatleft {
@@ -51,6 +54,9 @@ div.floatleft {
 
 /* @noflip */
 div.floatleft p {
+	font-style: italic;
+}
+div.floatleft div.paragraph {
 	font-style: italic;
 }
 

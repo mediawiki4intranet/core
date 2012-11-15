@@ -1986,7 +1986,7 @@ class Parser {
 	 * @return Boolean
 	 */
 	function areSubpagesAllowed() {
-		# Some namespaces don't allow subpages
+		// Some namespaces don't allow subpages
 		return MWNamespace::hasSubpages( $this->mTitle->getNamespace() );
 	}
 
@@ -2011,7 +2011,7 @@ class Parser {
 	function closeParagraph() {
 		$result = '';
 		if ( $this->mLastSection != '' ) {
-			$result = '</' . $this->mLastSection  . ">\n";
+			$result = '</' . $this->mLastSection  . ">";
 		}
 		$this->mInPre = false;
 		$this->mLastSection = '';
@@ -2134,16 +2134,69 @@ class Parser {
 		$textLines = StringUtils::explode( "\n", $text );
 
 		$lastPrefix = $output = '';
-		$this->mDTopen = $inBlockElem = false;
+		$this->mDTopen = false;
 		$prefixLength = 0;
-		$paragraphStack = false;
+
+		// 0     = always start paragraph for a piece of text or inline tag
+		// 1     = some text of current paragraph already printed inline,
+		//         so persist 1 across newline and print text from there inline also
+		// 2     = print text inline if there is some, but reset to 0 at newline if not
+		$dontStartParagraph = 0;
+
+		// the output position of last paragraph start
+		$lastParagraphPos = NULL;
+
+		// 'p'   = inside a paragraph
+		// 'div' = inside a <div class="paragraph">
+		// 'pre' = inside preformatted lines (with space at beginning)
+		$this->mLastSection = '';
+
+		// true  = inside a <pre> tag
+		$this->mInPre = false;
+
+		// > 0   = inside a $noPre tag
+		$inNoPre = 0;
+
+		// <div class="paragraph"> can itself contain paragraphs, so this is a stack of them
+		$nestedSections = array();
+
+		// empty lines counter
+		$emptyLines = 0;
+
+		// Block elements force to close current paragraph
+		$closesParagraph = array(
+			'div' => 1,
+			'center' => 1,
+			'table' => 1,
+			'caption' => 1,
+			'tr' => 1,
+			'td' => 1,
+			'th' => 1,
+			'h1' => 1,
+			'h2' => 1,
+			'h3' => 1,
+			'h4' => 1,
+			'h5' => 1,
+			'h6' => 1,
+			'hr' => 1,
+			'ul' => 1,
+			'ol' => 1,
+			'li' => 1,
+			'pre' => 1,
+			'p' => 1,
+			'blockquote' => 1,
+			'script' => 1,
+		);
+
+		// These elements disallow preformatting by adding space at the beginning of line
+		$noPre = array(
+			'table' => 1,
+			'pre' => 1,
+		);
 
 		foreach ( $textLines as $oLine ) {
-			# Fix up $linestart
 			if ( !$linestart ) {
-				$output .= $oLine;
-				$linestart = true;
-				continue;
+				$dontStartParagraph = 1;
 			}
 			# * = ul
 			# # = ol
@@ -2151,11 +2204,9 @@ class Parser {
 			# : = dd
 
 			$lastPrefixLength = strlen( $lastPrefix );
-			$preCloseMatch = preg_match( '/<\\/pre/i', $oLine );
-			$preOpenMatch = preg_match( '/<pre/i', $oLine );
-			# If not in a <pre> element, scan for and figure out what prefixes are there.
-			if ( !$this->mInPre ) {
-				# Multiple prefixes may abut each other for nested lists.
+			// If at line start and not in a <pre> element, scan for and figure out what prefixes are there.
+			if ( $linestart && !$this->mInPre ) {
+				// Multiple prefixes may abut each other for nested lists.
 				$prefixLength = strspn( $oLine, '*#:;' );
 				$prefix = substr( $oLine, 0, $prefixLength );
 
@@ -2165,7 +2216,6 @@ class Parser {
 				#  elements.
 				$prefix2 = str_replace( ';', ':', $prefix );
 				$t = substr( $oLine, $prefixLength );
-				$this->mInPre = (bool)$preOpenMatch;
 			} else {
 				# Don't interpret any other prefixes in preformatted text
 				$prefixLength = 0;
@@ -2176,8 +2226,9 @@ class Parser {
 			# List generation
 			if ( $prefixLength && $lastPrefix === $prefix2 ) {
 				# Same as the last item, so no need to deal with nesting or opening stuff
+				$output .= $this->closeParagraph();
+				$dontStartParagraph = 2;
 				$output .= $this->nextItem( substr( $prefix, -1 ) );
-				$paragraphStack = false;
 
 				if ( substr( $prefix, -1 ) === ';') {
 					# The one nasty exception: definition lists work like this:
@@ -2190,12 +2241,17 @@ class Parser {
 						$output .= $term . $this->nextItem( ':' );
 					}
 				}
+
+				// Reset linestart to false to ignore heading space
+				$linestart = false;
+				$emptyLines = 0;
 			} elseif ( $prefixLength || $lastPrefixLength ) {
+				$output .= $this->closeParagraph();
+				$dontStartParagraph = $prefixLength ? 2 : 0;
 				# We need to open or close prefixes, or both.
 
 				# Either open or close a level...
 				$commonPrefixLength = $this->getCommon( $prefix, $lastPrefix );
-				$paragraphStack = false;
 
 				# Close all the prefixes which aren't shared.
 				while ( $commonPrefixLength < $lastPrefixLength ) {
@@ -2223,71 +2279,148 @@ class Parser {
 					++$commonPrefixLength;
 				}
 				$lastPrefix = $prefix2;
+
+				// Reset linestart to false to ignore heading space
+				$linestart = !$prefixLength;
+				$emptyLines = 0;
 			}
 
-			# If we have no prefixes, go to paragraph mode.
-			if ( 0 == $prefixLength ) {
-				wfProfileIn( __METHOD__."-paragraph" );
-				# No prefix (not in list)--go to paragraph mode
-				# XXX: use a stack for nestable elements like span, table and div
-				$openmatch = preg_match('/(?:<table|<blockquote|<h1|<h2|<h3|<h4|<h5|<h6|<pre|<tr|<p|<ul|<ol|<li|<\\/tr|<\\/td|<\\/th)/iS', $t );
-				$closematch = preg_match(
-					'/(?:<\\/table|<\\/blockquote|<\\/h1|<\\/h2|<\\/h3|<\\/h4|<\\/h5|<\\/h6|'.
-					'<td|<th|<\\/?div|<hr|<\\/pre|<\\/p|'.$this->mUniqPrefix.'-pre|<\\/li|<\\/ul|<\\/ol|<\\/?center)/iS', $t );
-				if ( $openmatch or $closematch ) {
-					$paragraphStack = false;
-					# TODO bug 5718: paragraph closed
-					$output .= $this->closeParagraph();
-					if ( $preOpenMatch and !$preCloseMatch ) {
-						$this->mInPre = true;
-					}
-					$inBlockElem = !$closematch;
-				} elseif ( !$inBlockElem && !$this->mInPre ) {
-					if ( ' ' == substr( $t, 0, 1 ) and ( $this->mLastSection === 'pre' || trim( $t ) != '' ) ) {
-						# pre
-						if ( $this->mLastSection !== 'pre' ) {
-							$paragraphStack = false;
-							$output .= $this->closeParagraph().'<pre>';
-							$this->mLastSection = 'pre';
+			// Go to paragraph mode.
+			wfProfileIn( __METHOD__."-paragraph" );
+			if ( $linestart && $inNoPre <= 0 && ' ' == substr( $t, 0, 1 ) &&
+				( $this->mLastSection === 'pre' || trim( $t ) != '' ) ) {
+				// <pre>formatted text
+				$emptyLines = 0;
+				if ( $this->mLastSection !== 'pre' ) {
+					$output .= $this->closeParagraph().'<pre>';
+					$this->mLastSection = 'pre';
+				}
+				$output .= substr( $t, 1 ) . "\n";
+			} elseif ( !$this->mInPre && trim( $t ) === '' ) {
+				// close paragraph
+				$output .= $this->closeParagraph();
+				$dontStartParagraph = 0;
+				$emptyLines++;
+				if ( $emptyLines > 1 ) {
+					// start a new paragraph
+					$lastParagraphPos = strlen( $output );
+					$this->mLastSection = 'p';
+					$output .= '<p><br />';
+					$emptyLines = 0;
+				}
+			} else {
+				$emptyLines = 0;
+				while ( strlen( $t ) ) {
+					// match html tag or preformatted block hidden by link holder
+					// <html> does not influence on paragraphs in any way, so we don't match it
+					if ( preg_match( '/<(\/?)([a-z][a-z0-9]*).*?(\/?)>|('.$this->mUniqPrefix.
+						'-pre.*?'.self::MARKER_SUFFIX.')/iS', $t, $m, PREG_OFFSET_CAPTURE ) ) {
+						$textBefore = substr( $t, 0, $m[0][1] );
+						$t = substr( $t, $m[0][1] + strlen( $m[0][0] ) );
+						if ( $m[2][0] && empty( $closesParagraph[ $m[2][0] ] ) ) {
+							$textBefore .= $m[0][0];
+							$m[0][0] = '';
 						}
-						$t = substr( $t, 1 );
 					} else {
-						# paragraph
-						if ( trim( $t ) === '' ) {
-							if ( $paragraphStack ) {
-								$output .= $paragraphStack.'<br />';
-								$paragraphStack = false;
-								$this->mLastSection = 'p';
-							} else {
-								if ( $this->mLastSection !== 'p' ) {
+						$textBefore = $t;
+						$t = '';
+					}
+					$match = isset( $m[0] ) ? $m[0][0] : false;
+					$close = isset( $m[1] ) ? $m[1][0] : false;
+					$tag   = isset( $m[2] ) ? $m[2][0] : false;
+					$empty = isset( $m[3] ) ? $m[3][0] : false;
+					$uniq  = isset( $m[4] ) ? $m[4][0] : false;
+					if ( $textBefore !== '' ) {
+						// Here is the place where the text gets inside <p>aragraphs
+						if ( trim( $textBefore ) !== '' ) {
+							if ( !$this->mInPre && !$dontStartParagraph ) {
+								if ( $this->mLastSection == 'pre' ) {
 									$output .= $this->closeParagraph();
-									$this->mLastSection = '';
-									$paragraphStack = '<p>';
-								} else {
-									$paragraphStack = '</p><p>';
+								}
+								if ( !$this->mLastSection && !$this->mInPre ) {
+									$lastParagraphPos = strlen( $output );
+									$output .= '<p>';
+									$this->mLastSection = 'p';
 								}
 							}
-						} else {
-							if ( $paragraphStack ) {
-								$output .= $paragraphStack;
-								$paragraphStack = false;
-								$this->mLastSection = 'p';
-							} elseif ( $this->mLastSection !== 'p' ) {
-								$output .= $this->closeParagraph().'<p>';
-								$this->mLastSection = 'p';
+							elseif ( $dontStartParagraph == 2 ) {
+								$dontStartParagraph = 1;
+							}
+						}
+						$output .= $textBefore;
+					}
+					if ( $this->mInPre && $close && $tag == 'pre' ) {
+						// this is </pre> closing tag
+						$this->mInPre = false;
+						$inNoPre--;
+					} elseif ( $uniq ) {
+						// UNIQ <pre> closes paragraph
+						$output .= $this->closeParagraph();
+					} elseif ( !empty( $closesParagraph[ $tag ] ) ) {
+						// block element closes current paragraph
+						if ( $tag != 'div' ) {
+							// <div> does not close the paragraph,
+							// but turns it into a <div class="paragraph">
+							$output .= $this->closeParagraph();
+						} elseif ( !$empty ) {
+							// <div> is the only case of nested "paragraphs"
+							if ( $close ) {
+								// </div> - close current nesting level
+								$output .= $this->closeParagraph();
+								list( $this->mLastSection, $inNoPre ) = array_pop( $nestedSections );
+							} else {
+								// <div> - start a nested level
+								if ( $this->mLastSection == 'p' && $tag == 'div' ) {
+									// <div> can not be used inside <p>
+									// so turn last <p> into a <div class="paragraph">
+									$output =
+										substr( $output, 0, $lastParagraphPos ) .
+										'<div class="paragraph">' .
+										substr( $output, $lastParagraphPos+3 );
+									$this->mLastSection = 'div';
+								}
+								$nestedSections[] = array( $this->mLastSection, $inNoPre );
+								$this->mLastSection = '';
+								$inNoPre = 0;
+							}
+						}
+						// if not an enclosed XML element
+						if ( !$empty ) {
+							if ( !empty( $noPre[ $tag ] ) ) {
+								$inNoPre += $close ? -1 : 1;
+							}
+							if ( !$close ) {
+								if ( !$this->mLastSection ) {
+									// do not start paragraph right after opening block
+									// element tag on the same line. I.e. <div>A</div> is parsed
+									// into <div>A</div>, and <div>\nA</div> is parsed
+									// into <div><p>A</p></div>
+									$dontStartParagraph = 2;
+								}
+								if ( $tag == 'pre' && !$empty ) {
+									$this->mInPre = true;
+								}
+							} elseif ( $dontStartParagraph ) {
+								// Current block element is closed
+								$dontStartParagraph = 2;
 							}
 						}
 					}
+					if ( $match !== '' ) {
+						$output .= $match;
+					}
 				}
-				wfProfileOut( __METHOD__."-paragraph" );
+				$output .= "\n";
+				// If line ended after opening block element tag with no text after it
+				// => allow to start a paragraph from next line
+				// If there was some text (dontStartParagraph == 1)
+				// => do not start a paragraph from next line
+				if ( $dontStartParagraph == 2 ) {
+					$dontStartParagraph = 0;
+				}
 			}
-			# somewhere above we forget to get out of pre block (bug 785)
-			if ( $preCloseMatch && $this->mInPre ) {
-				$this->mInPre = false;
-			}
-			if ( $paragraphStack === false ) {
-				$output .= $t."\n";
-			}
+			wfProfileOut( __METHOD__."-paragraph" );
+			$linestart = true;
 		}
 		while ( $prefixLength ) {
 			$output .= $this->closeList( $prefix2[$prefixLength-1] );
