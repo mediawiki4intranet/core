@@ -37,6 +37,7 @@ abstract class UploadBase {
 	const HOOK_ABORTED = 11;
 	const FILE_TOO_LARGE = 12;
 	const WINDOWS_NONASCII_FILENAME = 13;
+	const FILENAME_TOO_LONG = 14;
 
 	public function getVerificationErrorCode( $error ) {
 		$code_to_status = array(self::EMPTY_FILE => 'empty-file',
@@ -49,6 +50,7 @@ abstract class UploadBase {
 								self::VERIFICATION_ERROR => 'verification-error',
 								self::HOOK_ABORTED =>  'hookaborted',
 								self::WINDOWS_NONASCII_FILENAME => 'windows-nonascii-filename',
+								self::FILENAME_TOO_LONG => 'filename-toolong',
 		);
 		if( isset( $code_to_status[$error] ) ) {
 			return $code_to_status[$error];
@@ -615,6 +617,13 @@ abstract class UploadBase {
 			$this->mFilteredName = $title->getDBkey();
 		} else {
 			$this->mFilteredName = $this->mDesiredDestName;
+		}
+
+		# oi_archive_name is max 255 bytes, which include a timestamp and an
+		# exclamation mark, so restrict file name to 240 bytes.
+		if ( strlen( $this->mFilteredName ) > 240 ) {
+			$this->mTitleError = self::FILENAME_TOO_LONG;
+			return $this->mTitle = null;
 		}
 
 		/**
