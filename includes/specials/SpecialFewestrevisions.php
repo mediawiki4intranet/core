@@ -42,7 +42,7 @@ class FewestrevisionsPage extends QueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'revision', 'page' ),
 			'fields' => array ( 'namespace' => 'page_namespace',
 					'title' => 'page_title',
@@ -58,6 +58,10 @@ class FewestrevisionsPage extends QueryPage {
 			// redirects.
 			'GROUP BY' => array( 'page_namespace', 'page_title', 'page_is_redirect' ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=tl_title', 'page_namespace=tl_namespace' ), NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function sortDescending() {

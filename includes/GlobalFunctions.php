@@ -3938,7 +3938,17 @@ function wfIsBadImage( $name, $contextTitle = false, $blacklist = null ) {
 	wfProfileIn( __METHOD__ );
 
 	# Handle redirects
+// <IntraACL>
+	if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+		$hacl = haclfDisableTitlePatch();
+	}
+// </IntraACL>
 	$redirectTitle = RepoGroup::singleton()->checkRedirect( Title::makeTitle( NS_FILE, $name ) );
+// <IntraACL>
+	if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+		haclfRestoreTitlePatch( $hacl );
+	}
+// </IntraACL>
 	if( $redirectTitle ) {
 		$name = $redirectTitle->getDbKey();
 	}

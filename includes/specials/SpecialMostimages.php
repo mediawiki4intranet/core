@@ -44,7 +44,7 @@ class MostimagesPage extends ImageQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'imagelinks' ),
 			'fields' => array ( 'namespace' => NS_FILE,
 					'title' => 'il_to',
@@ -52,6 +52,10 @@ class MostimagesPage extends ImageQueryPage {
 			'options' => array ( 'GROUP BY' => 'il_to',
 					'HAVING' => 'COUNT(*) > 1' )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=il_to' ), NS_FILE ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getCellHtml( $row ) {

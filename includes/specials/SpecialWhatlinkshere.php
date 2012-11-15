@@ -257,7 +257,11 @@ class SpecialWhatLinksHere extends SpecialPage {
 		$out->addHTML( $this->listStart( $level ) );
 		foreach ( $rows as $row ) {
 			$nt = Title::makeTitle( $row->page_namespace, $row->page_title );
-
+			// <IntraACL>
+			if ( !$nt->userCan('read') ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( $row->rd_from && $level < 2 ) {
 				$out->addHTML( $this->listItem( $row, $nt, true ) );
 				$this->showIndirectLinks( $level + 1, $nt, $wgMaxRedirectLinksRetrieved );

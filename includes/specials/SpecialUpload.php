@@ -318,6 +318,8 @@ class SpecialUpload extends SpecialPage {
 	 *         warnings and it should continue processing
 	 */
 	protected function showUploadWarning( $warnings ) {
+		wfRunHooks( 'SpecialUploadCheckWarnings', array( $this, &$warnings ) );
+
 		# If there are no warnings, or warnings we can ignore, return early.
 		# mDestWarningAck is set when some javascript has shown the warning
 		# to the user. mForReUpload is set when the user clicks the "upload a

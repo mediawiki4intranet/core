@@ -39,7 +39,7 @@ class UnusedCategoriesPage extends QueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'page', 'categorylinks' ),
 			'fields' => array ( 'namespace' => 'page_namespace',
 					'title' => 'page_title',
@@ -50,6 +50,10 @@ class UnusedCategoriesPage extends QueryPage {
 			'join_conds' => array ( 'categorylinks' => array (
 					'LEFT JOIN', 'cl_to = page_title' ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

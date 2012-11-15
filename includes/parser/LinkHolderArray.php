@@ -72,6 +72,12 @@ class LinkHolderArray {
 	 * Recreate the Title objects
 	 */
 	function __wakeup() {
+		// <IntraACL>
+		// LinkHolderArray skips permission checks so page links in parsed content are never cloaked
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			$etc = haclfDisableTitlePatch();
+		}
+		// </IntraACL>
 		foreach ( $this->internals as &$nsLinks ) {
 			foreach ( $nsLinks as &$entry ) {
 				$entry['title'] = Title::newFromText( $entry['pdbk'] );
@@ -84,6 +90,11 @@ class LinkHolderArray {
 			$entry['title'] = Title::newFromText( $entry['pdbk'] );
 		}
 		unset( $entry );
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			haclfRestoreTitlePatch( $etc );
+		}
+		// </IntraACL>
 	}
 
 	/**
@@ -290,6 +301,13 @@ class LinkHolderArray {
 
 		$linkcolour_ids = array();
 
+		// <IntraACL>
+		// LinkHolderArray skips permission checks so page links in parsed content are never cloaked
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			$etc = haclfDisableTitlePatch();
+		}
+		// </IntraACL>
+
 		# Generate query
 		$queries = array();
 		foreach ( $this->internals as $ns => $entries ) {
@@ -410,6 +428,11 @@ class LinkHolderArray {
 
 		wfProfileOut( __METHOD__ . '-replace' );
 		wfProfileOut( __METHOD__ );
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			haclfRestoreTitlePatch( $etc );
+		}
+		// </IntraACL>
 	}
 
 	/**

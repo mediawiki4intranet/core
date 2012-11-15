@@ -363,12 +363,16 @@ class ProtectedPagesPager extends AlphabeticPager {
 			$conds[] = 'pr_level=' . $this->mDb->addQuotes( $this->level );
 		if( !is_null( $this->namespace ) )
 			$conds[] = 'page_namespace=' . $this->mDb->addQuotes( $this->namespace );
-		return array(
+		$query = array(
 			'tables' => array( 'page_restrictions', 'page' ),
 			'fields' => array( 'pr_id', 'page_namespace', 'page_title', 'page_len',
 				'pr_type', 'pr_level', 'pr_expiry', 'pr_cascade' ),
 			'conds' => $conds
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getIndexField() {

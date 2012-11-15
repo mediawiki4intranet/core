@@ -92,6 +92,12 @@ class ApiParse extends ApiBase {
 				}
 
 				$titleObj = $rev->getTitle();
+				// <IntraACL>
+				if ( !$titleObj->userCan('read') ) {
+					$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+				}
+				// </IntraACL>
+
 				$wgTitle = $titleObj;
 				$pageObj = WikiPage::factory( $titleObj );
 				$popts = $pageObj->makeParserOptions( $this->getContext() );
@@ -146,6 +152,11 @@ class ApiParse extends ApiBase {
 				if ( !$titleObj || !$titleObj->exists() ) {
 					$this->dieUsage( "The page you specified doesn't exist", 'missingtitle' );
 				}
+				// <IntraACL>
+				if ( !$titleObj->userCan('read') ) {
+					$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+				}
+				// </IntraACL>
 				$wgTitle = $titleObj;
 
 				if ( isset( $prop['revid'] ) ) {
@@ -167,6 +178,11 @@ class ApiParse extends ApiBase {
 			if ( !$titleObj->canExist() ) {
 				$this->dieUsage( "Namespace doesn't allow actual pages", 'pagecannotexist' );
 			}
+			// <IntraACL>
+			if ( !$titleObj->userCan('read') ) {
+				$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+			}
+			// </IntraACL>
 			$wgTitle = $titleObj;
 			$pageObj = WikiPage::factory( $titleObj );
 

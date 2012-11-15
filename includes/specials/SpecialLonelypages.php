@@ -50,7 +50,7 @@ class LonelyPagesPage extends PageQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'page', 'pagelinks',
 					'templatelinks' ),
 			'fields' => array ( 'namespace' => 'page_namespace',
@@ -70,6 +70,10 @@ class LonelyPagesPage extends PageQueryPage {
 						'tl_namespace = page_namespace',
 						'tl_title = page_title' ) ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {

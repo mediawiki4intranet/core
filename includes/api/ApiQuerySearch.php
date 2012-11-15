@@ -130,6 +130,12 @@ class ApiQuerySearch extends ApiQueryGeneratorBase {
 
 			$title = $result->getTitle();
 			if ( is_null( $resultPageSet ) ) {
+				// <IntraACL>
+				if ( !$title->userCan('read') ) {
+					$result = $matches->next();
+					continue;
+				}
+				// </IntraACL>
 				$vals = array();
 				ApiQueryBase::addTitleInfo( $vals, $title );
 

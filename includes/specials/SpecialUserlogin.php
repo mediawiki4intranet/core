@@ -1000,7 +1000,9 @@ class LoginForm extends SpecialPage {
 		}
 
 		$returnToTitle = Title::newFromText( $returnTo );
-		if ( !$returnToTitle ) {
+		// <IntraACL>
+		if ( !$returnToTitle || !$returnToTitle->userCan('read') ) {
+		// </IntraACL>
 			$returnToTitle = Title::newMainPage();
 		}
 

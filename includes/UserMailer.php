@@ -656,7 +656,10 @@ class EmailNotification {
 					if ( $watchingUser->getOption( 'enotifwatchlistpages' ) &&
 						( !$minorEdit || $watchingUser->getOption( 'enotifminoredits' ) ) &&
 						$watchingUser->isEmailConfirmed() &&
-						$watchingUser->getID() != $userTalkId )
+						$watchingUser->getID() != $userTalkId &&
+// <IntraACL>
+						!$title->getUserPermissionsErrors( 'read', $watchingUser ) ) // Check page read access
+// </IntraACL>
 					{
 						$this->compose( $watchingUser );
 					}
@@ -671,7 +674,12 @@ class EmailNotification {
 				continue;
 			}
 			$user = User::newFromName( $name );
-			$this->compose( $user );
+// <IntraACL>
+			if ( !$title->getUserPermissionsErrors( 'read', $user ) ) {
+				// Check page read access
+				$this->compose( $user );
+			}
+// </IntraACL>
 		}
 
 		$this->sendMails();

@@ -41,7 +41,9 @@ class SpecialFilepath extends SpecialPage {
 
 		$title = Title::newFromText( $file, NS_FILE );
 
-		if ( ! $title instanceof Title || $title->getNamespace() != NS_FILE ) {
+		// <IntraACL>
+		if ( ! $title instanceof Title || $title->getNamespace() != NS_FILE || !$title->userCanRead() ) {
+		// </IntraACL>
 			$this->showForm( $title );
 		} else {
 			$file = wfFindFile( $title );

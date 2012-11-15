@@ -1141,6 +1141,13 @@ class DifferenceEngine extends ContextSource {
 			return false;
 		}
 
+		// <IntraACL>
+		if ( !$this->mNewRev->getTitle()->userCan('read') ) {
+			$this->mNewRev = false;
+			return false;
+		}
+		// </IntraACL>
+
 		// Update the new revision ID in case it was 0 (makes life easier doing UI stuff)
 		$this->mNewid = $this->mNewRev->getId();
 		$this->mNewPage = $this->mNewRev->getTitle();
@@ -1167,6 +1174,13 @@ class DifferenceEngine extends ContextSource {
 
 		if ( $this->mOldRev ) {
 			$this->mOldPage = $this->mOldRev->getTitle();
+			// <IntraACL>
+			if ( !$this->mOldRev->getTitle()->userCan('read') ) {
+				$this->mOldid = false;
+				$this->mOldRev = false;
+				return false;
+			}
+			// </IntraACL>
 		}
 
 		return true;

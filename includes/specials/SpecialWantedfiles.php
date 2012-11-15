@@ -73,7 +73,7 @@ class WantedFilesPage extends WantedQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'imagelinks', 'image' ),
 			'fields' => array ( 'namespace' => NS_FILE,
 					'title' => 'il_to',
@@ -86,6 +86,10 @@ class WantedFilesPage extends WantedQueryPage {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=img_name' ), NS_FILE ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	protected function getGroupName() {

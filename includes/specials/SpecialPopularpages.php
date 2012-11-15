@@ -42,13 +42,17 @@ class PopularPagesPage extends QueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array( 'page' ),
 			'fields' => array( 'namespace' => 'page_namespace',
 					'title' => 'page_title',
 					'value' => 'page_counter' ),
 			'conds' => array( 'page_is_redirect' => 0,
 					'page_namespace' => MWNamespace::getContentNamespaces() ) );
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

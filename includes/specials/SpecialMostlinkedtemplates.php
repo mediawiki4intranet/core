@@ -62,7 +62,7 @@ class MostlinkedTemplatesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'templatelinks' ),
 			'fields' => array ( 'namespace' => 'tl_namespace',
 					'title' => 'tl_title',
@@ -70,6 +70,10 @@ class MostlinkedTemplatesPage extends QueryPage {
 			'conds' => array ( 'tl_namespace' => NS_TEMPLATE ),
 			'options' => array( 'GROUP BY' => array( 'tl_namespace', 'tl_title' ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=tl_title', 'page_namespace=tl_namespace' ), NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

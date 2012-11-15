@@ -583,6 +583,11 @@ class ApiPageSet extends ApiBase {
 	public function processDbRow( $row ) {
 		// Store Title object in various data structures
 		$title = Title::newFromRow( $row );
+		// <IntraACL>
+		if ( !$title->userCan('read') ) {
+			return false;
+		}
+		// </IntraACL>
 
 		$pageId = intval( $row->page_id );
 		$this->mAllPages[$row->page_namespace][$row->page_title] = $pageId;
@@ -597,6 +602,7 @@ class ApiPageSet extends ApiBase {
 		foreach ( $this->mRequestedPageFields as $fieldName => &$fieldValues ) {
 			$fieldValues[$pageId] = $row-> $fieldName;
 		}
+		return true;
 	}
 
 	/**
@@ -700,17 +706,17 @@ class ApiPageSet extends ApiBase {
 			foreach ( $res as $row ) {
 				$pageId = intval( $row->page_id );
 
+				// Store any extra fields requested by modules
+				$readable = $this->processDbRow( $row );
+
 				// Remove found page from the list of remaining items
-				if ( isset( $remaining ) ) {
+				if ( $readable && isset( $remaining ) ) {
 					if ( $processTitles ) {
 						unset( $remaining[$row->page_namespace][$row->page_title] );
 					} else {
 						unset( $remaining[$pageId] );
 					}
 				}
-
-				// Store any extra fields requested by modules
-				$this->processDbRow( $row );
 
 				// Need gender information
 				if ( MWNamespace::hasGenderDistinction( $row->page_namespace ) ) {
@@ -781,16 +787,28 @@ class ApiPageSet extends ApiBase {
 				$revid = intval( $row->rev_id );
 				$pageid = intval( $row->rev_page );
 				$this->mGoodRevIDs[$revid] = $pageid;
-				$pageids[$pageid] = '';
+				$pageids[$pageid][] = $revid;
 				unset( $remaining[$revid] );
 			}
 			$this->profileDBOut();
 		}
 
-		$this->mMissingRevIDs = array_keys( $remaining );
-
 		// Populate all the page information
 		$this->initFromPageIds( array_keys( $pageids ) );
+
+		// <IntraACL>
+		foreach ( $pageids as $pageid => $revids ) {
+			if ( !isset( $this->mGoodTitles[$pageid] ) ) {
+				// Page is unreadable, remove revisions from good list
+				foreach ( $revids as $revid ) {
+					unset( $this->mGoodRevIDs[$revid] );
+					$remaining[$revid] = true;
+				}
+			}
+		}
+		// </IntraACL>
+
+		$this->mMissingRevIDs = array_keys( $remaining );
 	}
 
 	/**
@@ -859,6 +877,11 @@ class ApiPageSet extends ApiBase {
 			$from = $this->mPendingRedirectIDs[$rdfrom]->getPrefixedText();
 			$to = Title::makeTitle( $row->rd_namespace, $row->rd_title, $row->rd_fragment, $row->rd_interwiki );
 			unset( $this->mPendingRedirectIDs[$rdfrom] );
+			// <IntraACL>
+			if ( !$to->userCan('read') ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( !isset( $this->mAllPages[$row->rd_namespace][$row->rd_title] ) ) {
 				$lb->add( $row->rd_namespace, $row->rd_title );
 			}
@@ -919,7 +942,9 @@ class ApiPageSet extends ApiBase {
 			} else {
 				$titleObj = $title;
 			}
-			if ( !$titleObj ) {
+			// <IntraACL>
+			if ( !$titleObj || !$titleObj->userCan('read') ) {
+			// </IntraACL>
 				// Handle invalid titles gracefully
 				$this->mAllPages[0][$title] = $this->mFakePageId;
 				$this->mInvalidTitles[$this->mFakePageId] = $title;

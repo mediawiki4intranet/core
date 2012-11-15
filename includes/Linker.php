@@ -1992,6 +1992,10 @@ class Linker {
 						array(),
 						array( 'action' => 'edit' )
 					);
+				// <IntraACL>
+				} elseif ( !$titleObj->userCan('read') ) {
+					continue;
+				// </IntraACL>
 				} else {
 					$editLink = self::link(
 						$titleObj,

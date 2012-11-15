@@ -97,7 +97,7 @@ class SpecialPagesWithProp extends QueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'page_props', 'page' ),
 			'fields' => array(
 				'page_id' => 'pp_page',
@@ -114,6 +114,10 @@ class SpecialPagesWithProp extends QueryPage {
 			),
 			'options' => array()
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {

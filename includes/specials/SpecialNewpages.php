@@ -318,6 +318,12 @@ class SpecialNewpages extends IncludableSpecialPage {
 		$lang = $this->getLanguage();
 		$dm = $lang->getDirMark();
 
+		// <IntraACL>
+		if ( !$title->userCan('read') ) {
+			return '';
+		}
+		// </IntraACL>
+
 		$spanTime = Html::element( 'span', array( 'class' => 'mw-newpages-time' ),
 			$lang->userTimeAndDate( $result->rc_timestamp, $this->getUser() )
 		);
@@ -572,6 +578,10 @@ class NewPagesPager extends ReverseChronologicalPager {
 			$info['options'],
 			$this->opts['tagfilter']
 		);
+
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
 
 		return $info;
 	}

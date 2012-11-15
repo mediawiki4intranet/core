@@ -106,7 +106,9 @@ class Title {
 		$t = new Title();
 		$t->mDbkeyform = $key;
 		if ( $t->secureAndSplit() ) {
-			return $t;
+			// <IntraACL>
+			return $t->checkAccessControl();
+			// </IntraACL>
 		} else {
 			return null;
 		}
@@ -160,7 +162,9 @@ class Title {
 				$cachedcount++;
 				Title::$titleCache[$text] =& $t;
 			}
-			return $t;
+			// <IntraACL>
+			return $t->checkAccessControl();
+			// </IntraACL>
 		} else {
 			$ret = null;
 			return $ret;
@@ -217,7 +221,9 @@ class Title {
 
 		$t->mDbkeyform = str_replace( ' ', '_', $url );
 		if ( $t->secureAndSplit() ) {
-			return $t;
+			// <IntraACL>
+			return $t->checkAccessControl();
+			// </IntraACL>
 		} else {
 			return null;
 		}
@@ -357,6 +363,9 @@ class Title {
 		$t->mUrlform = wfUrlencode( $t->mDbkeyform );
 		$t->mTextform = str_replace( '_', ' ', $title );
 		$t->mContentModel = false; # initialized lazily in getContentModel()
+		// <IntraACL>
+		$t = $t->checkAccessControl();
+		// </IntraACL>
 		return $t;
 	}
 
@@ -379,7 +388,9 @@ class Title {
 		$t = new Title();
 		$t->mDbkeyform = Title::makeName( $ns, $title, $fragment, $interwiki );
 		if ( $t->secureAndSplit() ) {
-			return $t;
+			// <IntraACL>
+			return $t->checkAccessControl();
+			// </IntraACL>
 		} else {
 			return null;
 		}
@@ -2185,6 +2196,12 @@ class Title {
 					$whitelisted = true;
 				}
 			} elseif ( $this->isSpecialPage() ) {
+				// <IntraACL>
+				// Disable title patch here to avoid infinite recursion
+				if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+					$hacl = haclfDisableTitlePatch();
+				}
+				// </IntraACL>
 				# If it's a special page, ditch the subpage bit and check again
 				$name = $this->getDBkey();
 				list( $name, /* $subpage */ ) = SpecialPageFactory::resolveAlias( $name );
@@ -2194,6 +2211,11 @@ class Title {
 						$whitelisted = true;
 					}
 				}
+				// <IntraACL>
+				if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+					haclfRestoreTitlePatch( $hacl );
+				}
+				// </IntraACL>
 			}
 		}
 
@@ -4872,4 +4894,68 @@ class Title {
 		}
 		return $notices;
 	}
+
+// <IntraACL>
+	/**
+	 * This function checks, if this title is accessible for the action of the
+	 * current request. If the action is unknown it is assumed to be "read".
+	 * If the title is not accessible, the new title "Permission denied" is
+	 * returned. This is a fallback to protect titles if all other security
+	 * patches fail.
+	 *
+	 * While a page is rendered, the same title is often checked several times.
+	 * To speed things up, the results of an accessibility check are internally
+	 * cached.
+	 *
+	 * This function can be disabled in HACL_Initialize.php or LocalSettings.php
+	 * by setting the variable $haclgEnableTitleCheck = false.
+	 *
+	 * @return
+	 * 		$this, if access is granted on this title or
+	 * 		the title for "Permission denied" if not.
+	 */
+	private function checkAccessControl() {
+		if ( !defined( 'HACL_HALOACL_VERSION' ) ) {
+			// IntraACL is disabled or not fully initialized
+			return $this;
+		}
+		global $haclgEnableTitleCheck;
+		if ( isset( $haclgEnableTitleCheck ) && $haclgEnableTitleCheck === false ) {
+			return $this;
+		}
+		static $permissionCache = array();
+
+		$action = 'read';
+		$index = $this->getFullText().'-'.$action;
+		$allowed = @$permissionCache[$index];
+		if ( !isset( $allowed ) ) {
+			switch ( $action ) {
+				case 'create':
+				case 'move':
+				case 'delete':
+					$allowed = $this->userCan( $action );
+					break;
+				case 'edit':
+					// If the article does not exist and edit right was requested,
+					// check for create right.
+					$allowed = $this->userCan( $this->exists() ? 'edit' : 'create' );
+					break;
+				default:
+					// If the user has no read access to a non-existing page,
+					// but has the right to create it - allow him to "read" it
+					$allowed = $this->userCan( 'read' ) || !$this->exists() && $this->userCan( 'create' );
+			}
+			$permissionCache[$index] = $allowed;
+		}
+		if ( $allowed === false ) {
+			global $haclgContLang;
+			$etc = $haclgEnableTitleCheck;
+			$haclgEnableTitleCheck = false;
+			$t = Title::newFromURL( $haclgContLang->getPermissionDeniedPage() );
+			$haclgEnableTitleCheck = $etc;
+			return $t;
+		}
+		return $this;
+	}
+// </IntraACL>
 }

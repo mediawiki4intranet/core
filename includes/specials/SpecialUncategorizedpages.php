@@ -47,7 +47,7 @@ class UncategorizedPagesPage extends PageQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'page', 'categorylinks' ),
 			'fields' => array ( 'namespace' => 'page_namespace',
 					'title' => 'page_title',
@@ -60,6 +60,10 @@ class UncategorizedPagesPage extends PageQueryPage {
 			'join_conds' => array ( 'categorylinks' => array (
 					'LEFT JOIN', 'cl_from = page_id' ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {

@@ -61,7 +61,9 @@ class SpecialSpecialpages extends UnlistedSpecialPage {
 		/** Put them into a sortable array */
 		$groups = array();
 		foreach ( $pages as $page ) {
-			if ( $page->isListed() ) {
+			// <IntraACL>
+			if ( $page->isListed() && $page->getTitle()->userCan( 'read' ) ) {
+			// </IntraACL>
 				$group = $page->getFinalGroupName();
 				if( !isset( $groups[$group] ) ) {
 					$groups[$group] = array();

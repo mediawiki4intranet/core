@@ -165,13 +165,18 @@ class ImageListPager extends TablePager {
 			}
 			$join_conds = array( 'oldimage' => array( 'LEFT JOIN', 'oi_name = img_name' ) );
 		}
-		return array(
+
+		$info = array(
 			'tables'     => $tables,
 			'fields'     => $fields,
 			'conds'      => $this->mQueryConds,
 			'options'    => $options,
 			'join_conds' => $join_conds
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$info, 'page', array( 'page_title=img_name' ), NS_FILE ) );
+		// </IntraACL>
+		return $info;
 	}
 
 	function getDefaultSort() {
@@ -186,6 +191,18 @@ class ImageListPager extends TablePager {
 		}
 		# Do a link batch query for names and userpages
 		UserCache::singleton()->doQuery( $userIds, array( 'userpage' ), __METHOD__ );
+	}
+
+	function formatRow( $row ) {
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			$filePage = Title::makeTitleSafe( NS_FILE, $row->img_name );
+			if ( $filePage && !$filePage->userCanRead() ) {
+				return '';
+			}
+		}
+		// </IntraACL>
+		return parent::formatRow( $row );
 	}
 
 	function formatValue( $field, $value ) {

@@ -95,6 +95,9 @@ class DoubleRedirectsPage extends QueryPage {
 			$retval['conds']['pa.page_namespace'] = $namespace;
 			$retval['conds']['pa.page_title'] = $title;
 		}
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$retval, 'pa', NULL, NULL ) );
+		// </IntraACL>
 		return $retval;
 	}
 

@@ -38,7 +38,7 @@ class WantedTemplatesPage extends WantedQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array (
+		$query = array (
 			'tables' => array ( 'templatelinks', 'page' ),
 			'fields' => array ( 'namespace' => 'tl_namespace',
 					'title' => 'tl_title',
@@ -51,6 +51,10 @@ class WantedTemplatesPage extends WantedQueryPage {
 					array ( 'page_namespace = tl_namespace',
 						'page_title = tl_title' ) ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	protected function getGroupName() {

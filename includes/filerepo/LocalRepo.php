@@ -241,7 +241,12 @@ class LocalRepo extends FileRepo {
 
 		$result = array();
 		foreach ( $res as $row ) {
-			$result[] = $this->newFileFromRow( $row );
+			$file = $this->newFileFromRow( $row );
+			// <IntraACL>
+			if ( $file !== NULL ) {
+				$result[] = $file;
+			}
+			// </IntraACL>
 		}
 		$res->free();
 
@@ -274,7 +279,11 @@ class LocalRepo extends FileRepo {
 		$result = array();
 		foreach ( $res as $row ) {
 			$file = $this->newFileFromRow( $row );
-			$result[$file->getSha1()][] = $file;
+			// <IntraACL>
+			if ( $file !== NULL ) {
+				$result[$file->getSha1()][] = $file;
+			}
+			// </IntraACL>
 		}
 		$res->free();
 
@@ -304,7 +313,12 @@ class LocalRepo extends FileRepo {
 		// Build file objects
 		$files = array();
 		foreach ( $res as $row ) {
-			$files[] = $this->newFileFromRow( $row );
+			$file = $this->newFileFromRow( $row );
+			// <IntraACL>
+			if ( $file !== NULL ) {
+				$files[] = $file;
+			}
+			// </IntraACL>
 		}
 		return $files;
 	}

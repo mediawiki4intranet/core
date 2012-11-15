@@ -369,6 +369,12 @@ abstract class QueryPage extends SpecialPage {
 		if ( is_array( $query ) ) {
 			$tables = isset( $query['tables'] ) ? (array)$query['tables'] : array();
 			$fields = isset( $query['fields'] ) ? (array)$query['fields'] : array();
+			// <IntraACL>
+			if ( in_array( 'page', $tables ) && !isset( $fields['namespace'] ) ) {
+				$fields['namespace'] = 'page_namespace';
+				$fields['title'] = 'page_title';
+			}
+			// </IntraACL>
 			$conds = isset( $query['conds'] ) ? (array)$query['conds'] : array();
 			$options = isset( $query['options'] ) ? (array)$query['options'] : array();
 			$join_conds = isset( $query['join_conds'] ) ? (array)$query['join_conds'] : array();
@@ -581,6 +587,12 @@ abstract class QueryPage extends SpecialPage {
 			# $res might contain the whole 1,000 rows, so we read up to
 			# $num [should update this to use a Pager]
 			for ( $i = 0; $i < $num && $row = $dbr->fetchObject( $res ); $i++ ) {
+				// <IntraACL>
+				$title = Title::makeTitleSafe( $row->namespace, $row->title );
+				if ( !$title || !$title->userCan('read') ) {
+					continue;
+				}
+				// </IntraACL>
 				$line = $this->formatResult( $skin, $row );
 				if ( $line ) {
 					$attr = ( isset( $row->usepatrol ) && $row->usepatrol && $row->patrolled == 0 )

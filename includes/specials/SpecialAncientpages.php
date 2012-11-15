@@ -41,7 +41,7 @@ class AncientPagesPage extends QueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'page', 'revision' ),
 			'fields' => array( 'namespace' => 'page_namespace',
 					'title' => 'page_title',
@@ -50,6 +50,10 @@ class AncientPagesPage extends QueryPage {
 					'page_is_redirect' => 0,
 					'page_latest=rev_id' )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function usesTimestamps() {
