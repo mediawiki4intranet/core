@@ -359,7 +359,9 @@ class Parser {
 		$this->mLangLinkLanguages = array();
 		$this->currentRevisionCache = null;
 
-		$this->mStripState = new StripState;
+		if ( !$this->mStripState ) {
+			$this->mStripState = new StripState;
+		}
 
 		# Clear these on every parse, bug 4549
 		$this->mTplRedirCache = $this->mTplDomCache = array();
