@@ -1848,7 +1848,7 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 
 	if( !$haveDiff3 ) {
 		wfDebug( "diff3 not found\n" );
-		return false;
+		return NULL;
 	}
 
 	# Make temporary files
@@ -1857,6 +1857,10 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 	$mytextFile = fopen( $mytextName = tempnam( $td, 'merge-mine-' ), 'w' );
 	$yourtextFile = fopen( $yourtextName = tempnam( $td, 'merge-your-' ), 'w' );
 
+	if ($old{strlen($old)-1} != "\n") $old .= "\n";
+	if ($mine{strlen($mine)-1} != "\n") $mine .= "\n";
+	if ($yours{strlen($yours)-1} != "\n") $yours .= "\n";
+
 	fwrite( $oldtextFile, $old );
 	fclose( $oldtextFile );
 	fwrite( $mytextFile, $mine );
@@ -1864,23 +1868,11 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 	fwrite( $yourtextFile, $yours );
 	fclose( $yourtextFile );
 
-	# Check for a conflict
-	$cmd = $wgDiff3 . ' -a --overlap-only ' .
-		wfEscapeShellArg( $mytextName ) . ' ' .
-		wfEscapeShellArg( $oldtextName ) . ' ' .
-		wfEscapeShellArg( $yourtextName );
-	$handle = popen( $cmd, 'r' );
-
-	if( fgets( $handle, 1024 ) ) {
-		$conflict = true;
-	} else {
-		$conflict = false;
-	}
-	pclose( $handle );
-
 	# Merge differences
-	$cmd = $wgDiff3 . ' -a -e --merge ' .
-		wfEscapeShellArg( $mytextName, $oldtextName, $yourtextName );
+	$cmd = $wgDiff3 . ' -a -A --merge ' . wfEscapeShellArg(
+		'-L', wfMsg( 'merge-mine' ), '-L', wfMsg( 'merge-old' ),
+		'-L', wfMsg( 'merge-their' ), $mytextName, $oldtextName, $yourtextName
+	);
 	$handle = popen( $cmd, 'r' );
 	$result = '';
 	do {
@@ -1890,7 +1882,7 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 		}
 		$result .= $data;
 	} while ( true );
-	pclose( $handle );
+	$conflict = pclose( $handle ) != 0;
 	unlink( $mytextName );
 	unlink( $oldtextName );
 	unlink( $yourtextName );
