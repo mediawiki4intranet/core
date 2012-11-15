@@ -806,7 +806,12 @@ class MessageCache {
 				# Uncloneable
 				$this->mParser = new $class( $wgParserConf );
 			} else {
-				$this->mParser = clone $wgParser;
+				# Deep clone is more safe - for example, Cite extension
+				# stores its state in an object property, which is not cloned
+				# and therefore is reset on clearState().
+				# And so, all citations are lost when something that calls
+				# wfMsg() ( not wfMsgExt() ) is included.
+				$this->mParser = unserialize( serialize( $wgParser ) );
 			}
 		}
 		return $this->mParser;
