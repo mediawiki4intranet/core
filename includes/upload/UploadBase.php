@@ -869,6 +869,7 @@ abstract class UploadBase {
 			return $this->mTitle;
 		}
 
+		/* 4intra.net patch (translit-upload-filenames)
 		// Windows may be broken with special characters, see bug 1780
 		if ( !preg_match( '/^[\x0-\x7f]*$/', $nt->getText() )
 			&& !RepoGroup::singleton()->getLocalRepo()->backendSupportsUnicodePaths()
@@ -878,6 +879,7 @@ abstract class UploadBase {
 
 			return $this->mTitle;
 		}
+		*/
 
 		# If there was more than one "extension", reassemble the base
 		# filename to prevent bogus complaints about length

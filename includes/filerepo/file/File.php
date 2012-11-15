@@ -926,8 +926,8 @@ abstract class File implements IDBAccessObject {
 	 */
 	public function thumbName( $params, $flags = 0 ) {
 		$name = ( $this->repo && !( $flags & self::THUMB_FULL_NAME ) )
-			? $this->repo->nameForThumb( $this->getName() )
-			: $this->getName();
+			? $this->repo->nameForThumb( $this->getPhys() )
+			: $this->getPhys();
 
 		return $this->generateThumbName( $name, $params );
 	}
@@ -1482,13 +1482,29 @@ abstract class File implements IDBAccessObject {
 	}
 
 	/**
+	 * Get the physical path of the file
+	 */
+	function getPhys() {
+		global $wgTransliterateUploadFilenames;
+		$name = $this->getName();
+		if ( $wgTransliterateUploadFilenames ) {
+			if ( preg_match( '/^(.*)\.(.*?)$/is', $name, $m ) ) {
+				$name = wfTransliterateRussian( $m[1] ) . '.' . $m[2];
+			} else {
+				$name = wfTransliterateRussian( $name );
+			}
+		}
+		return $name;
+	}
+
+	/**
 	 * Get the path of the file relative to the public zone root.
 	 * This function is overridden in OldLocalFile to be like getArchiveRel().
 	 *
 	 * @return string
 	 */
 	function getRel() {
-		return $this->getHashPath() . $this->getName();
+		return $this->getHashPath() . $this->getPhys();
 	}
 
 	/**
@@ -1532,7 +1548,7 @@ abstract class File implements IDBAccessObject {
 	 * @return string
 	 */
 	function getUrlRel() {
-		return $this->getHashPath() . rawurlencode( $this->getName() );
+		return $this->getHashPath() . rawurlencode( $this->getPhys() );
 	}
 
 	/**

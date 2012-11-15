@@ -1506,7 +1506,7 @@ class LocalFile extends File {
 
 		$this->lock(); // begin
 
-		$archiveName = wfTimestamp( TS_MW ) . '!' . $this->getName();
+		$archiveName = wfTimestamp( TS_MW ) . '!' . $this->getPhys();
 		$archiveRel = 'archive/' . $this->getHashPath() . $archiveName;
 
 		if ( $repo->hasSha1Storage() ) {
@@ -2718,8 +2718,9 @@ class LocalFileMoveBatch {
 		$this->file = $file;
 		$this->target = $target;
 		$this->oldHash = $this->file->repo->getHashPath( $this->file->getName() );
-		$this->newHash = $this->file->repo->getHashPath( $this->target->getDBkey() );
-		$this->oldName = $this->file->getName();
+		$this->newHash = $this->file->repo->getHashPath( $this->target->getDBKey() );
+		$this->oldName = $this->file->getPhys();
+		/* FIXME getPhysFromTitle is needed */
 		$this->newName = $this->file->repo->getNameFromTitle( $this->target );
 		$this->oldRel = $this->oldHash . $this->oldName;
 		$this->newRel = $this->newHash . $this->newName;
