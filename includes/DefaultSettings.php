@@ -1328,6 +1328,11 @@ $wgAdditionalMailParams = null;
 $wgAllowHTMLEmail = false;
 
 /**
+ * Default content type for e-mails
+ */
+$wgEmailContentType = 'text/plain';
+
+/**
  * True: from page editor if s/he opted-in. False: Enotif mails appear to come
  * from $wgEmergencyContact
  */
