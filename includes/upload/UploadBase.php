@@ -1059,7 +1059,7 @@ abstract class UploadBase {
 	 * @return bool True if the file contains something looking like embedded scripts
 	 */
 	public static function detectScript( $file, $mime, $extension ) {
-		global $wgAllowTitlesInSVG;
+		global $wgAllowTitlesInSVG, $wgForbiddenTagsInUploads;
 
 		# ugly hack: for text files, always look at the entire file.
 		# For binary field, just check the first K.
@@ -1124,16 +1124,19 @@ abstract class UploadBase {
 		 * Also returns true if Safari would mistake the given file for HTML
 		 * when served with a generic content-type.
 		 */
-		$tags = array(
-			'<a href',
-			'<body',
-			'<head',
-			'<html', #also in safari
-			'<img',
-			'<pre',
-			'<script', #also in safari
-			'<table'
-		);
+		$tags = $wgForbiddenTagsInUploads;
+		if ( !$tags ) {
+			$tags = array(
+				'<a href',
+				'<body',
+				'<head',
+				'<html',   #also in safari
+				'<img',
+				'<pre',
+				'<script', #also in safari
+				'<table'
+			);
+		}
 
 		if ( !$wgAllowTitlesInSVG && $extension !== 'svg' && $mime !== 'image/svg' ) {
 			$tags[] = '<title';
