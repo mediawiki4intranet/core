@@ -871,6 +871,11 @@ $wgXMLMimeTypes = array(
 		'html'                              			=> 'text/html', // application/xhtml+xml?
 );
 
+$wgXMLMayBeCompressed = array(
+	'image/svg+xml' => true,
+	'application/x-dia-diagram' => true,
+);
+
 /**
  * Limit images on image description pages to a user-selectable limit. In order
  * to reduce disk usage, limits can only be selected from a list.

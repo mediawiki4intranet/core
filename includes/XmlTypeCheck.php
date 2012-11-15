@@ -20,6 +20,12 @@ class XmlTypeCheck {
 	public $rootElement = '';
 
 	/**
+	 * Name of file compression type (can be only 'gzip' by now),
+	 * or FALSE if the file is uncompressed.
+	 */
+	public $compressed = false;
+
+	/**
 	 * @param $file string filename
 	 * @param $filterCallback callable (optional)
 	 *        Function to call to do additional custom validity checks from the
@@ -53,6 +59,18 @@ class XmlTypeCheck {
 		xml_set_element_handler( $parser, array( $this, 'rootElementOpen' ), false );
 
 		$file = fopen( $fname, "rb" );
+		$gz = fread( $file, 2 );
+		if ( $gz == "\x1F\x8B" ) {
+			if ( function_exists( 'gzopen' ) ) {
+				fclose( $file );
+				$this->compressed = 'gzip';
+				$file = gzopen( $fname, "rb" );
+			} else {
+				return;
+			}
+		} else {
+			fseek( $file, 0, SEEK_SET );
+		}
 		do {
 			$chunk = fread( $file, 32768 );
 			$ret = xml_parse( $parser, $chunk, feof( $file ) );

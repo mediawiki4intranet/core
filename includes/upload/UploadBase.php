@@ -405,7 +405,7 @@ abstract class UploadBase {
 
 		$handler = MediaHandler::getHandler( $mime );
 		if ( $handler ) {
-			$handlerStatus = $handler->verifyUpload( $this->mTempPath );
+			$handlerStatus = $handler->verifyUpload( $this->mTempPath, $this->mDestName, $this->mFileProps );
 			if ( !$handlerStatus->isOK() ) {
 				$errors = $handlerStatus->getErrorsArray();
 				return reset( $errors );

@@ -460,7 +460,7 @@ abstract class MediaHandler {
 	 * @param $fileName The local path to the file.
 	 * @return Status object
 	 */
-	function verifyUpload( $fileName ) {
+	function verifyUpload( $fileName, $destName, $fileProps ) {
 		return Status::newGood();
 	}
 

@@ -57,19 +57,28 @@ class SVGReader {
 			throw new MWException( "Error getting filesize of SVG." );
 		}
 
-		if ( $size > $wgSVGMetadataCutoff ) {
-			$this->debug( "SVG is $size bytes, which is bigger than $wgSVGMetadataCutoff. Truncating." );
-			$contents = file_get_contents( $source, false, null, -1, $wgSVGMetadataCutoff );
-			if ($contents === false) {
-				throw new MWException( 'Error reading SVG file.' );
-			}
-			$this->reader->XML( $contents, null, LIBXML_NOERROR | LIBXML_NOWARNING );
-		} else {
-			$this->reader->open( $source, null, LIBXML_NOERROR | LIBXML_NOWARNING );
+		$fp = fopen( $source, 'rb' );
+		if ( !$fp ) {
+			throw new MWException( 'Error reading SVG file.' );
 		}
+		if ( function_exists( 'gzopen' ) && fread( $fp, 3 ) == "\x1f\x8b\x08" ) {
+			fclose( $fp );
+			$fp = gzopen( $source, 'rb' );
+			if ( !$fp ) {
+				throw new MWException( 'Error reading gzip-compressed SVG file.' );
+			}
+			$this->metadata['compressed'] = true;
+		} else {
+			fseek( $fp, 0, 0 );
+			$this->metadata['compressed'] = false;
+		}
+		$contents = stream_get_contents( $fp, $wgSVGMetadataCutoff );
+		fclose( $fp );
+		$this->reader->XML( $contents, null, LIBXML_NOERROR | LIBXML_NOWARNING );
 
 		$this->metadata['width'] = self::DEFAULT_WIDTH;
 		$this->metadata['height'] = self::DEFAULT_HEIGHT;
+		$this->metadata['viewBox'] = '';
 
 		// Because we cut off the end of the svg making an invalid one. Complicated
 		// try catch thing to make sure warnings get restored. Seems like there should
@@ -253,7 +262,8 @@ class SVGReader {
 
 		if( $this->reader->getAttribute('viewBox') ) {
 			// min-x min-y width height
-			$viewBox = preg_split( '/\s+/', trim( $this->reader->getAttribute('viewBox') ) );
+			$this->metadata['viewBox'] = trim( $this->reader->getAttribute('viewBox') );
+			$viewBox = preg_split( '/\s+/', $this->metadata['viewBox'] );
 			if( count( $viewBox ) == 4 ) {
 				$viewWidth = $this->scaleSVGUnit( $viewBox[2] );
 				$viewHeight = $this->scaleSVGUnit( $viewBox[3] );

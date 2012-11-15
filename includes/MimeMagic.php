@@ -469,7 +469,7 @@ class MimeMagic {
 			'webp',
 
 			// XML formats we sure hope we recognize reliably
-			'svg',
+			'svg', 'svgz',
 		);
 		return in_array( strtolower( $extension ), $types );
 	}
@@ -661,11 +661,16 @@ class MimeMagic {
 		 */
 		$xml = new XmlTypeCheck( $file );
 		if ( $xml->wellFormed ) {
-			global $wgXMLMimeTypes;
-			if ( isset( $wgXMLMimeTypes[$xml->getRootElement()] ) ) {
-				return $wgXMLMimeTypes[$xml->getRootElement()];
-			} else {
-				return 'application/xml';
+			global $wgXMLMimeTypes, $wgXMLMayBeCompressed;
+			$t = $wgXMLMimeTypes[$xml->getRootElement()];
+			if ( !$xml->compressed ) {
+				if ( $t ) {
+					return $t;
+				} else {
+					return 'application/xml';
+				}
+			} elseif ( $wgXMLMayBeCompressed[$t] ) {
+				return $t;
 			}
 		}
 

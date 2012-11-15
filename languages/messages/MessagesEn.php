@@ -3660,6 +3660,7 @@ By executing it, your system may be compromised.",
 'file-info-png-looped'   => 'looped',
 'file-info-png-repeat'   => 'played $1 {{PLURAL:$1|time|times}}',
 'file-info-png-frames'   => '$1 {{PLURAL:$1|frame|frames}}',
+'svgz-extension-error'   => 'Compressed SVG files must have "svgz" extension to be correctly rendered by browsers.',
 
 # Special:NewFiles
 'newimages'             => 'Gallery of new files',

@@ -3060,6 +3060,7 @@ $1',
 'file-info-png-looped'   => 'закольцованный',
 'file-info-png-repeat'   => 'проигрывается $1 {{PLURAL:$1|раз|раза|раз}}',
 'file-info-png-frames'   => '$1 {{PLURAL:$1|кадр|кадра|кадров}}',
+'svgz-extension-error'   => 'Чтобы сжатые SVG-файлы корректно отображались браузерами, они должны иметь расширение "svgz".',
 
 # Special:NewFiles
 'newimages'             => 'Галерея новых файлов',
