@@ -307,8 +307,10 @@ class Parser {
 		 * Must not consist of all title characters, or else it will change
 		 * the behavior of <nowiki> in a link.
 		 */
-		$this->mUniqPrefix = "\x7fUNIQ" . self::getRandomString();
-		$this->mStripState = new StripState( $this->mUniqPrefix );
+		if ( !$this->mStripState ) {
+			$this->mUniqPrefix = "\x7fUNIQ" . self::getRandomString();
+			$this->mStripState = new StripState( $this->mUniqPrefix );
+		}
 
 		# Clear these on every parse, bug 4549
 		$this->mTplExpandCache = $this->mTplRedirCache = $this->mTplDomCache = array();
