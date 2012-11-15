@@ -84,7 +84,7 @@
 	 * @static
 	 * @property TITLE_MAX_BYTES
 	 */
-	TITLE_MAX_BYTES = 255,
+	TITLE_MAX_BYTES = parseInt( mw.config.get( 'wgMaxTitleBytes' ) ),
 
 	/**
 	 * Get the namespace id from a namespace name (either from the localized, canonical or alias

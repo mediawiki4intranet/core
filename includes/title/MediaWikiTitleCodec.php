@@ -352,14 +352,22 @@ class MediaWikiTitleCodec implements TitleFormatter, TitleParser {
 			throw new MalformedTitleException( 'title-invalid-magic-tilde', $text );
 		}
 
-		# Limit the size of titles to 255 bytes. This is typically the size of the
-		# underlying database field. We make an exception for special pages, which
-		# don't need to be stored in the database, and may edge over 255 bytes due
-		# to subpage syntax for long titles, e.g. [[Special:Block/Long name]]
-		$maxLength = ( $parts['namespace'] != NS_SPECIAL ) ? 255 : 512;
-		if ( strlen( $dbkey ) > $maxLength ) {
-			throw new MalformedTitleException( 'title-invalid-too-long', $text,
-				array( Message::numParam( $maxLength ) ) );
+		/**
+		 * Limit the size of titles to $wgMaxTitleBytes bytes.
+		 * It is set to 255 by default - this is typically the size of the underlying database field.
+		 * We make an exception for special pages, which don't need to be stored
+		 * in the database, and may edge over this limit due to subpage syntax
+		 * for long titles, e.g. [[Special:Block/Long name]]
+		 *
+		 * Really, even in MySQL you can use VARBINARY(767) for page.page_title.
+		 * 767 is the maximum size for an index key in InnoDB.
+		 * So the limit is made configurable in MediaWiki4Intranet.
+		 */
+		global $wgMaxTitleBytes;
+		$max = $parts['namespace'] != NS_SPECIAL ? $wgMaxTitleBytes : $wgMaxTitleBytes*2;
+		if ( strlen( $dbkey ) > $max ) {
+			throw new MalformedTitleException( 'title-invalid-too-long',
+				Message::numParam( $max ) );
 		}
 
 		# Normally, all wiki links are forced to have an initial capital letter so [[foo]]
