@@ -1019,6 +1019,11 @@ $wgEnableEmail = true;
 $wgEnableUserEmail = true;
 
 /**
+ * Default content-type for e-mail. Set to text/html for HTML e-mail.
+ */
+$wgEmailContentType = 'text/plain';
+
+/**
  * Set to true to put the sending user's email in a Reply-To header
  * instead of From. ($wgEmergencyContact will be used as From.)
  *
