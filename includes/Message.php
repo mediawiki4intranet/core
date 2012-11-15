@@ -108,6 +108,7 @@ class Message {
 	 */
 	public function __construct( $key, $params = array() ) {
 		global $wgLang;
+		wfRunHooks( 'NormalizeMessageKey', array( &$key, &$this->useDatabase, &$langCode, &$transform ) );
 		$this->key = $key;
 		$this->parameters = array_values( $params );
 		$this->language = $wgLang;
