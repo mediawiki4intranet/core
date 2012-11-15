@@ -54,6 +54,8 @@ class RawAction extends FormlessAction {
 	}
 
 	function onView() {
+		global $wgTitle, $wgContLanguageCode;
+
 		$this->getOutput()->disable();
 		$request = $this->getRequest();
 		$response = $request->response();
@@ -106,6 +108,7 @@ class RawAction extends FormlessAction {
 		$response->header(
 			'Cache-Control: ' . $mode . ', s-maxage=' . $smaxage . ', max-age=' . $maxage
 		);
+		$response->header( "Content-disposition: attachment; filename*=utf-8'$wgContLanguageCode'".urlencode( $wgTitle->getSubpageText() ) );
 
 		$text = $this->getRawText();
 
@@ -237,6 +240,8 @@ class RawAction extends FormlessAction {
 	 * @return string
 	 */
 	public function getContentType() {
+		global $wgAllowedRawCTypes;
+
 		$ctype = $this->getRequest()->getVal( 'ctype' );
 
 		if ( $ctype == '' ) {
@@ -248,8 +253,10 @@ class RawAction extends FormlessAction {
 			}
 		}
 
-		$allowedCTypes = array( 'text/x-wiki', 'text/javascript', 'text/css', 'application/x-zope-edit' );
-		if ( $ctype == '' || !in_array( $ctype, $allowedCTypes ) ) {
+		$allowedCTypes = $wgAllowedRawCTypes
+			? $wgAllowedRawCTypes
+			: array( 'text/x-wiki', $wgJsMimeType, 'text/css', 'application/x-zope-edit' );
+		if ( $ctype == '' || $allowedCTypes !== true && !in_array( $ctype, $allowedCTypes ) ) {
 			$ctype = 'text/x-wiki';
 		}
 
