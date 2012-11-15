@@ -406,7 +406,9 @@ class EditPage {
 			$wgUser->spreadAnyEditBlock();
 
 			wfDebug( __METHOD__ . ": User can't edit\n" );
-			$content = $this->getContent( null );
+			$content = $this->textbox2 ? $this->textbox2 :
+				( $this->textbox1 ? $this->textbox1 : $this->getContent( false ) );
+
 			$content = $content === '' ? null : $content;
 			$this->readOnlyPage( $content, true, $permErrors, 'edit' );
 			wfProfileOut( __METHOD__ );
