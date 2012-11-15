@@ -16,6 +16,8 @@ application/srgs+xml grxml
 application/vnd.mif mif
 application/vnd.ms-excel xls xlt xla
 application/vnd.ms-powerpoint ppt pot pps ppa
+application/vnd.ms-office vsd ppt
+application/vnd.visio vsd
 application/vnd.wap.wbxml wbxml
 application/vnd.wap.wmlc wmlc
 application/vnd.wap.wmlscriptc wmlsc
@@ -171,6 +173,7 @@ application/vnd.ms-excel.sheet.macroEnabled.12 xlsm
 application/vnd.ms-excel.template.macroEnabled.12 xltm
 application/vnd.ms-excel.addin.macroEnabled.12 xlam
 application/vnd.ms-excel.sheet.binary.macroEnabled.12 xlsb
+application/vnd.ms-visio.drawing vsdx
 model/vnd.dwfx+xps dwfx
 application/vnd.ms-xpsdocument xps
 application/x-opc+zip docx dotx docm dotm potx ppsx pptx ppam pptm potm ppsm xlsx xltx xlsm xltm xlam xlsb dwfx xps
