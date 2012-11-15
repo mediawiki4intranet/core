@@ -48,7 +48,7 @@ class RawAction extends FormlessAction {
 	}
 
 	function onView() {
-		global $wgSquidMaxage, $wgForcedRawSMaxage, $wgJsMimeType;
+		global $wgSquidMaxage, $wgForcedRawSMaxage, $wgJsMimeType, $wgTitle, $wgContLanguageCode;
 
 		$this->getOutput()->disable();
 		$request = $this->getRequest();
@@ -91,6 +91,7 @@ class RawAction extends FormlessAction {
 		$response = $request->response();
 
 		$response->header( 'Content-type: ' . $contentType . '; charset=UTF-8' );
+		$response->header( "Content-disposition: attachment; filename*=utf-8'$wgContLanguageCode'".urlencode( $wgTitle->getSubpageText() ) );
 		# Output may contain user-specific data;
 		# vary generated content for open sessions on private wikis
 		$privateCache = !User::groupHasPermission( '*', 'read' ) && ( $smaxage == 0 || session_id() != '' );
@@ -224,7 +225,7 @@ class RawAction extends FormlessAction {
 	 * @return String
 	 */
 	public function getContentType() {
-		global $wgJsMimeType;
+		global $wgJsMimeType, $wgAllowedRawCTypes;
 
 		$ctype = $this->getRequest()->getVal( 'ctype' );
 
@@ -237,8 +238,10 @@ class RawAction extends FormlessAction {
 			}
 		}
 
-		$allowedCTypes = array( 'text/x-wiki', $wgJsMimeType, 'text/css', 'application/x-zope-edit' );
-		if ( $ctype == '' || !in_array( $ctype, $allowedCTypes ) ) {
+		$allowedCTypes = $wgAllowedRawCTypes
+			? $wgAllowedRawCTypes
+			: array( 'text/x-wiki', $wgJsMimeType, 'text/css', 'application/x-zope-edit' );
+		if ( $ctype == '' || $allowedCTypes !== true && !in_array( $ctype, $allowedCTypes ) ) {
 			$ctype = 'text/x-wiki';
 		}
 
