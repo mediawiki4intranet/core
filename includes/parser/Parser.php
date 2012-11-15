@@ -4417,9 +4417,7 @@ class Parser {
 			$maybeShowEditLink = true; /* Actual presence will depend on ParserOptions option */
 			$showEditLink = $this->mOptions->getEditSection();
 		}
-		if ( $showEditLink ) {
-			$this->mOutput->setEditSectionTokens( true );
-		}
+		$this->mOutput->setEditSectionTokens( $showEditLink );
 
 		# Get all headlines for numbering them and adding funky stuff like [edit]
 		# links - this is for later, but we need the number of headlines right now
