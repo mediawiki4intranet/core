@@ -2231,14 +2231,6 @@ class EditPage {
 
 		$this->showEditTools();
 
-		$wgOut->addHTML( $this->editFormTextAfterTools . "\n" );
-
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'templatesUsed' ),
-			Linker::formatTemplates( $this->getTemplates(), $this->preview, $this->section != '' ) ) );
-
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'hiddencats' ),
-			Linker::formatHiddenCategories( $this->mArticle->getHiddenCategories() ) ) );
-
 		if ( $this->isConflict ) {
 			try {
 				$this->showConflict();
@@ -2250,6 +2242,14 @@ class EditPage {
 		}
 
 		$wgOut->addHTML( $this->editFormTextBottom . "\n</form>\n" );
+
+		$wgOut->addHTML( $this->editFormTextAfterTools . "\n" );
+
+		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'templatesUsed' ),
+			Linker::formatTemplates( $this->getTemplates(), $this->preview, $this->section != '' ) ) );
+
+		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'hiddencats' ),
+			Linker::formatHiddenCategories( $this->mArticle->getHiddenCategories() ) ) );
 
 		if ( !$wgUser->getOption( 'previewontop' ) ) {
 			$this->displayPreviewArea( $previewOutput, false );
@@ -2801,7 +2801,10 @@ HTML
 	}
 
 	public static function getCopyrightWarning( $title ) {
-		global $wgRightsText;
+		global $wgRightsText, $wgNoCopyrightWarnings;
+		if ( $wgNoCopyrightWarnings ) {
+			return '';
+		}
 		if ( $wgRightsText ) {
 			$copywarnMsg = array( 'copyrightwarning',
 				'[[' . wfMessage( 'copyrightpage' )->inContentLanguage()->text() . ']]',
