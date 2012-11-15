@@ -251,6 +251,8 @@ class Message implements MessageSpecifier, Serializable {
 			throw new InvalidArgumentException( '$key must be a string or an array' );
 		}
 
+		wfRunHooks( 'NormalizeMessageKey', array( &$key, &$this->useDatabase, &$langCode, &$transform ) );
+
 		$this->keysToTry = (array)$key;
 
 		if ( empty( $this->keysToTry ) ) {
