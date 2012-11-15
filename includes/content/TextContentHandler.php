@@ -66,7 +66,7 @@ class TextContentHandler extends ContentHandler {
 	 *
 	 * @return Content|bool
 	 */
-	public function merge3( Content $oldContent, Content $myContent, Content $yourContent ) {
+	public function merge3( Content $oldContent, Content $myContent, Content $yourContent, $force = false ) {
 		$this->checkModelID( $oldContent->getModel() );
 		$this->checkModelID( $myContent->getModel() );
 		$this->checkModelID( $yourContent->getModel() );
@@ -79,7 +79,7 @@ class TextContentHandler extends ContentHandler {
 
 		$ok = wfMerge( $old, $mine, $yours, $result );
 
-		if ( !$ok ) {
+		if ( !$ok && !$force ) {
 			return false;
 		}
 
@@ -88,7 +88,9 @@ class TextContentHandler extends ContentHandler {
 		}
 
 		$mergedContent = $this->unserializeContent( $result, $format );
-
+		if ( $force ) {
+			return array( $mergedContent, $ok );
+		}
 		return $mergedContent;
 	}
 

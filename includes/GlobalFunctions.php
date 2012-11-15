@@ -3048,7 +3048,7 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 
 	if ( !$haveDiff3 ) {
 		wfDebug( "diff3 not found\n" );
-		return false;
+		return NULL;
 	}
 
 	# Make temporary files
@@ -3061,28 +3061,20 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 	#       a newline character. To avoid this, we normalize the trailing whitespace before
 	#       creating the diff.
 
-	fwrite( $oldtextFile, rtrim( $old ) . "\n" );
+	if ($old{strlen($old)-1} != "\n") $old .= "\n";
+	if ($mine{strlen($mine)-1} != "\n") $mine .= "\n";
+	if ($yours{strlen($yours)-1} != "\n") $yours .= "\n";
+
+	fwrite( $oldtextFile, $old );
 	fclose( $oldtextFile );
-	fwrite( $mytextFile, rtrim( $mine ) . "\n" );
+	fwrite( $mytextFile, $mine );
 	fclose( $mytextFile );
-	fwrite( $yourtextFile, rtrim( $yours ) . "\n" );
+	fwrite( $yourtextFile, $yours );
 	fclose( $yourtextFile );
 
-	# Check for a conflict
-	$cmd = wfEscapeShellArg( $wgDiff3, '-a', '--overlap-only', $mytextName,
-		$oldtextName, $yourtextName );
-	$handle = popen( $cmd, 'r' );
-
-	if ( fgets( $handle, 1024 ) ) {
-		$conflict = true;
-	} else {
-		$conflict = false;
-	}
-	pclose( $handle );
-
-	# Merge differences
-	$cmd = wfEscapeShellArg( $wgDiff3, '-a', '-e', '--merge', $mytextName,
-		$oldtextName, $yourtextName );
+	# Try to merge and check for a conflict
+	$cmd = wfEscapeShellArg( $wgDiff3 ) . ' -a --show-overlap --merge ' .
+		wfEscapeShellArg( $mytextName, $oldtextName, $yourtextName );
 	$handle = popen( $cmd, 'r' );
 	$result = '';
 	do {
@@ -3092,7 +3084,47 @@ function wfMerge( $old, $mine, $yours, &$result ) {
 		}
 		$result .= $data;
 	} while ( true );
-	pclose( $handle );
+	$conflict = pclose( $handle ) != 0;
+
+	if ( $conflict ) {
+		# Edit conflicts detected, get 3-way diff using --show-all
+		$cmd = wfEscapeShellArg( $wgDiff3 ) . ' -a --show-all --merge ' . wfEscapeShellArg(
+			'-L', wfMsg( 'merge-mine' ), '-L', wfMsg( 'merge-old' ),
+			'-L', wfMsg( 'merge-their' ), $mytextName, $oldtextName, $yourtextName
+		);
+		$handle = popen( $cmd, 'r' );
+		$result = '';
+		do {
+			$data = fread( $handle, 8192 );
+			if ( strlen( $data ) == 0 ) {
+				break;
+			}
+			$result .= $data;
+		} while ( true );
+		pclose( $handle );
+
+		# diff3 -A emits "<<< (old) ... === ... >>> (their)"
+		# when "my" content is equal to "their", instead of just skipping the hunk :-(
+		# and we can't get "old" version from diff3 -E :-(
+		# So... filter non-conflicting changes out manually
+		$equal = "\n<<<<<<< ".wfMsg( 'merge-old' )."\n";
+		$split = "\n=======\n";
+		$end = "\n>>>>>>> ".wfMsg( 'merge-their' )."\n";
+		$result = "\n$result";
+		$p = 0;
+		while( ( $p = strpos( $result, $equal, $p ) ) !== false ) {
+			$pp = strpos( $result, $split, $p );
+			$ppp = strpos( $result, $end, $p );
+			if ( $pp !== false && $ppp !== false ) {
+				$result = substr( $result, 0, $p+1 ) .
+					substr( $result, $pp+strlen( $split ), $ppp+1-$pp-strlen( $split ) ) .
+					substr( $result, $ppp+strlen( $end ) );
+			} else {
+				$p++;
+			}
+		}
+	}
+
 	unlink( $mytextName );
 	unlink( $oldtextName );
 	unlink( $yourtextName );

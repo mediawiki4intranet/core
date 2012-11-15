@@ -762,7 +762,7 @@ abstract class ContentHandler {
 	 *
 	 * @return Content|bool Always false.
 	 */
-	public function merge3( Content $oldContent, Content $myContent, Content $yourContent ) {
+	public function merge3( Content $oldContent, Content $myContent, Content $yourContent, $force = false ) {
 		return false;
 	}
 

@@ -1845,12 +1845,15 @@ class EditPage {
 				$content = $textbox_content; // do not try to merge here!
 			} elseif ( $this->isConflict ) {
 				# Attempt merge
-				if ( $this->mergeChangesIntoContent( $content ) ) {
+				if ( $res = $this->mergeChangesIntoContent( $content, true ) ) {
 					// Successful merge! Maybe we should tell the user the good news?
 					$this->isConflict = false;
 					wfDebug( __METHOD__ . ": Suppressing edit conflict, successful merge.\n" );
 				} else {
 					$this->section = '';
+					// was merging available?
+					$this->mMergeAvailable = $res !== NULL;
+					$this->textbox2 = $this->textbox1;
 					$this->textbox1 = ContentHandler::getContentText( $content );
 					wfDebug( __METHOD__ . ": Keeping edit conflict, failed merge.\n" );
 				}
@@ -2056,7 +2059,7 @@ class EditPage {
 	 *
 	 * @return bool
 	 */
-	private function mergeChangesIntoContent( &$editContent ) {
+	private function mergeChangesIntoContent( &$editContent, $force = false ) {
 
 		$db = wfGetDB( DB_MASTER );
 
@@ -2078,7 +2081,12 @@ class EditPage {
 
 		$handler = ContentHandler::getForModelID( $baseContent->getModel() );
 
-		$result = $handler->merge3( $baseContent, $editContent, $currentContent );
+		$result = $handler->merge3( $baseContent, $editContent, $currentContent, $force );
+
+		if ( $force ) {
+			$editContent = $result[0];
+			return $result[1];
+		}
 
 		if ( $result ) {
 			$editContent = $result;
@@ -2562,15 +2570,6 @@ class EditPage {
 		}
 
 		if ( $this->isConflict ) {
-			// In an edit conflict bypass the overridable content form method
-			// and fallback to the raw wpTextbox1 since editconflicts can't be
-			// resolved between page source edits and custom ui edits using the
-			// custom edit ui.
-			$this->textbox2 = $this->textbox1;
-
-			$content = $this->getCurrentContent();
-			$this->textbox1 = $this->toEditText( $content );
-
 			$this->showTextbox1();
 		} else {
 			$this->showContentForm();
@@ -2668,7 +2667,8 @@ class EditPage {
 		}
 
 		if ( $this->isConflict ) {
-			$wgOut->wrapWikiMsg( "<div class='mw-explainconflict'>\n$1\n</div>", 'explainconflict' );
+			$wgOut->wrapWikiMsg( "<div class='mw-explainconflict'>\n$1\n</div>",
+				$this->mMergeAvailable ? 'explainconflictmerged' : 'explainconflict' );
 			$this->edittime = $this->mArticle->getTimestamp();
 		} else {
 			if ( $this->section != '' && !$this->isSectionEditSupported() ) {
@@ -3058,11 +3058,11 @@ HTML
 		);
 	}
 
-	protected function showTextbox2() {
+	public function showTextbox2() {
 		$this->showTextbox( $this->textbox2, 'wpTextbox2', array( 'tabindex' => 6, 'readonly' ) );
 	}
 
-	protected function showTextbox( $text, $name, $customAttribs = array() ) {
+	public function showTextbox( $text, $name, $customAttribs = array() ) {
 		global $wgOut, $wgUser;
 
 		$wikitext = $this->safeUnicodeOutput( $text );
@@ -3391,6 +3391,7 @@ HTML
 		global $wgOut;
 
 		if ( Hooks::run( 'EditPageBeforeConflictDiff', array( &$this, &$wgOut ) ) ) {
+			$this->textbox2 = $this->getContentObject();
 			$wgOut->wrapWikiMsg( '<h2>$1</h2>', "yourdiff" );
 
 			$content1 = $this->toEditContent( $this->textbox1 );
@@ -3398,13 +3399,13 @@ HTML
 
 			$handler = ContentHandler::getForModelID( $this->contentModel );
 			$de = $handler->createDifferenceEngine( $this->mArticle->getContext() );
-			$de->setContent( $content2, $content1 );
+			$de->setContent( $content1, $content2 );
 			$de->showDiff(
 				wfMessage( 'yourtext' )->parse(),
 				wfMessage( 'storedversion' )->text()
 			);
 
-			$wgOut->wrapWikiMsg( '<h2>$1</h2>', "yourtext" );
+			$wgOut->wrapWikiMsg( '<h2>$1</h2>', "storedversion" );
 			$this->showTextbox2();
 		}
 	}

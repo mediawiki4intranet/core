@@ -7578,6 +7578,9 @@ $wgPoolCounterConf = null;
  */
 $wgUploadMaintenance = false;
 
+/** Defines that MergeConflicts extension patch was applied to this MW installation */
+define ( 'MW_PATCH_MERGE_CONFLICTS', 1 );
+
 /**
  * Associative array mapping namespace IDs to the name of the content model pages in that namespace
  * should have by default (use the CONTENT_MODEL_XXX constants). If no special content type is
