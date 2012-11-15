@@ -3,16 +3,7 @@
  */
 ( function ( mw, $ ) {
 	$( document ).ready( function ( $ ) {
-		var map, resultRenderCache, searchboxesSelectors,
-			// Region where the suggestions box will appear directly below
-			// (using the same width). Can be a container element or the input
-			// itself, depending on what suits best in the environment.
-			// For Vector the suggestion box should align with the simpleSearch
-			// container's borders, in other skins it should align with the input
-			// element (not the search form, as that would leave the buttons
-			// vertically between the input and the suggestions).
-			$searchRegion = $( '#simpleSearch, #searchInput' ).first(),
-			$searchInput = $( '#searchInput' );
+		var map, resultRenderCache, searchboxesSelectors;
 
 		// Compatibility map
 		map = {
@@ -188,46 +179,39 @@
 				$( this ).trigger( 'keypress' );
 			} );
 
-		// Ensure that the thing is actually present!
-		if ( $searchRegion.length === 0 ) {
-			// Don't try to set anything up if simpleSearch is disabled sitewide.
-			// The loader code loads us if the option is present, even if we're
-			// not actually enabled (anymore).
-			return;
-		}
-
-		// Placeholder text for search box
-		$searchInput
-			.attr( 'placeholder', mw.msg( 'searchsuggest-search' ) )
-			.placeholder();
-
 		// Special suggestions functionality for skin-provided search box
-		$searchInput.suggestions( {
-			result: {
-				render: renderFunction,
-				select: function ( $input ) {
-					$input.closest( 'form' ).submit();
-				}
-			},
-			special: {
-				render: specialRenderFunction,
-				select: function ( $input ) {
-					$input.closest( 'form' ).append(
-						$( '<input type="hidden" name="fulltext" value="1"/>' )
-					);
-					$input.closest( 'form' ).submit();
-				}
-			},
-			$region: $searchRegion
+		$( searchboxesSelectors.join(', ') ).each( function() {
+			var $searchInput = $( this );
+			// Placeholder text for search box
+			$searchInput
+				.attr( 'placeholder', mw.msg( 'searchsuggest-search' ) )
+				.placeholder();
+			$searchInput.suggestions( {
+				result: {
+					render: renderFunction,
+					select: function ( $input ) {
+						$input.closest( 'form' ).submit();
+					}
+				},
+				special: {
+					render: specialRenderFunction,
+					select: function ( $input ) {
+						$input.closest( 'form' ).append(
+							$( '<input type="hidden" name="fulltext" value="1"/>' )
+						);
+						$input.closest( 'form' ).submit();
+					}
+				},
+				$region: $searchInput,
+			} );
+			// In most skins (at least Monobook and Vector), the font-size is messed up in <body>.
+			// (they use 2 elements to get a sane font-height). So, instead of making exceptions for
+			// each skin or adding more stylesheets, just copy it from the active element so auto-fit.
+			$searchInput
+				.data( 'suggestions-context' )
+				.data.$container
+					.css( 'fontSize', $searchInput.css( 'fontSize' ) );
 		} );
-
-		// In most skins (at least Monobook and Vector), the font-size is messed up in <body>.
-		// (they use 2 elements to get a sane font-height). So, instead of making exceptions for
-		// each skin or adding more stylesheets, just copy it from the active element so auto-fit.
-		$searchInput
-			.data( 'suggestions-context' )
-			.data.$container
-				.css( 'fontSize', $searchInput.css( 'fontSize' ) );
 
 	} );
 
