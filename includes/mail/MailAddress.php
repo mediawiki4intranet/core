@@ -72,7 +72,7 @@ class MailAddress {
 			if ( $this->name != '' && !wfIsWindows() ) {
 				global $wgEnotifUseRealName;
 				$name = ( $wgEnotifUseRealName && $this->realName !== '' ) ? $this->realName : $this->name;
-				$quoted = UserMailer::quotedPrintable( $name );
+				$quoted = UserMailer::mimeBase64( $name );
 				if ( strpos( $quoted, '.' ) !== false || strpos( $quoted, ',' ) !== false ) {
 					$quoted = '"' . $quoted . '"';
 				}

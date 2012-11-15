@@ -305,7 +305,7 @@ class UserMailer {
 
 			wfDebug( "Sending mail via PEAR::Mail\n" );
 
-			$headers['Subject'] = self::quotedPrintable( $subject );
+			$headers['Subject'] = self::mimeBase64( $subject );
 
 			// When sending only to one recipient, shows it its email using To:
 			if ( count( $to ) == 1 ) {
@@ -346,11 +346,11 @@ class UserMailer {
 
 				foreach ( $to as $recip ) {
 					if ( $safeMode ) {
-						$sent = mail( $recip, self::quotedPrintable( $subject ), $body, $headers );
+						$sent = mail( $recip, self::mimeBase64( $subject ), $body, $headers );
 					} else {
 						$sent = mail(
 							$recip,
-							self::quotedPrintable( $subject ),
+							self::mimeBase64( $subject ),
 							$body,
 							$headers,
 							$extraParams
@@ -408,6 +408,26 @@ class UserMailer {
 		// Remove quotes
 		$phrase = str_replace( '"', '', $phrase );
 		return '"' . $phrase . '"';
+	}
+
+	/**
+	 * Converts a string into MIME-Base64 header encoding.
+	 */
+	public static function mimeBase64( $string, $charset = '' ) {
+		if( empty( $charset ) ) {
+			$charset = 'UTF-8';
+		}
+		if ( !function_exists( 'iconv_mime_encode' ) ) {
+			// Do not split and recode the string when iconv is unavailable
+			return '=?'.$charset.'?B?'.base64_encode( $string ).'?=';
+		}
+		return substr( iconv_mime_encode( '', $string, array(
+			'input-charset' => $charset,
+			'output-charset' => 'utf-8',
+			'line-length' => 76,
+			'line-break-chars' => "\n",
+			'scheme' => 'B'
+		) ), 2 );
 	}
 
 	/**
