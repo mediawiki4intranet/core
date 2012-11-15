@@ -679,7 +679,7 @@ class EditPage {
 				# If the form is incomplete, force to preview.
 				wfDebug( __METHOD__ . ": Form data appears to be incomplete\n" );
 				wfDebug( "POST DATA: " . var_export( $_POST, true ) . "\n" );
-				$this->preview = true;
+				$this->preview = $request->getCheck( 'wpPreview' );
 			} else {
 				/* Fallback for live preview */
 				$this->preview = $request->getCheck( 'wpPreview' ) || $request->getCheck( 'wpLivePreview' );
@@ -705,7 +705,7 @@ class EditPage {
 					$this->preview = true;
 				}
 			}
-			$this->save = !$this->preview && !$this->diff;
+			$this->save = $request->getCheck( 'wpSave' ) && !$this->preview && !$this->diff;
 			if ( !preg_match( '/^\d{14}$/', $this->edittime ) ) {
 				$this->edittime = null;
 			}
@@ -808,12 +808,6 @@ class EditPage {
 		global $wgUser;
 		$this->edittime = $this->mArticle->getTimestamp();
 
-		$content = $this->getContentObject( false ); #TODO: track content object?!
-		if ( $content === false ) {
-			return false;
-		}
-		$this->textbox1 = $this->toEditText( $content );
-
 		// activate checkboxes if user wants them to be always active
 		# Sort out the "watch" checkbox
 		if ( $wgUser->getOption( 'watchdefault' ) ) {
@@ -831,6 +825,13 @@ class EditPage {
 		}
 		if ( $this->textbox1 === false ) {
 			return false;
+		}
+		if ( !trim( $this->textbox1 ) ) {
+			$content = $this->getContentObject( false ); #TODO: track content object?!
+			if ( $content === false ) {
+				return false;
+			}
+			$this->textbox1 = $this->toEditText( $content );
 		}
 		wfProxyCheck();
 		return true;
