@@ -1,0 +1,30 @@
+/* Export page selector */
+fieldset.addpages {
+	display: inline-block;
+	margin-top: 0;
+}
+
+.addpages div {
+	float: left;
+	text-align: right;
+	vertical-align: top;
+	padding-right: 8px;
+	margin-bottom: 2px;
+}
+
+.addpages .ap_linkdepth {
+	clear: left;
+}
+
+.addpages.no_linkdepth .ap_closure {
+	clear: left;
+}
+
+.addpages .ap_submit {
+	float: right;
+}
+
+.addpages .ap_submit input {
+	font-weight: bold;
+	padding: 0 1em;
+}

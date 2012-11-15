@@ -64,10 +64,7 @@ if ( isset( $options['revstart'] ) ) {
 if ( isset( $options['revend'] ) ) {
 	$dumper->revEndId = intval( $options['revend'] );
 }
-$dumper->skipHeader = isset( $options['skip-header'] );
-$dumper->skipFooter = isset( $options['skip-footer'] );
-$dumper->dumpUploads = isset( $options['uploads'] );
-$dumper->dumpUploadFileContents = isset( $options['include-files'] );
+$dumper->format = isset( $options['format'] ) ? $options['format'] : 'xml';
 
 $textMode = isset( $options['stub'] ) ? WikiExporter::STUB : WikiExporter::TEXT;
 
@@ -84,47 +81,45 @@ if ( isset( $options['full'] ) ) {
 } else {
 	$dumper->progress( <<<ENDS
 This script dumps the wiki page or logging database into an
-XML interchange wrapper format for export or backup.
+XML/ZIP interchange wrapper format for export or backup.
 
-XML output is sent to stdout; progress reports are sent to stderr.
+XML/ZIP output is sent to stdout; progress reports are sent to stderr.
 
 WARNING: this is not a full database dump! It is merely for public export
-		 of your wiki. For full backup, see our online help at:
+         of your wiki. For full backup, see our online help at:
          https://www.mediawiki.org/wiki/Backup
 
 Usage: php dumpBackup.php <action> [<options>]
-Actions:
-  --full      Dump all revisions of every page.
-  --current   Dump only the latest revision of every page.
-  --logs      Dump all log events.
-  --stable    Stable versions of pages?
-  --pagelist=<file>
-			  Where <file> is a list of page titles to be dumped
-  --revrange  Dump specified range of revisions, requires
-              revstart and revend options.
-Options:
-  --quiet     Don't dump status reports to stderr.
-  --report=n  Report position and speed after every n pages processed.
-			  (Default: 100)
-  --server=h  Force reading from MySQL server h
-  --start=n   Start from page_id or log_id n
-  --end=n     Stop before page_id or log_id n (exclusive)
-  --revstart=n  Start from rev_id n
-  --revend=n    Stop before rev_id n (exclusive)
-  --skip-header Don't output the <mediawiki> header
-  --skip-footer Don't output the </mediawiki> footer
-  --stub      Don't perform old_text lookups; for 2-pass dump
-  --uploads   Include upload records without files
-  --include-files Include files within the XML stream
-  --conf=<file> Use the specified configuration file (LocalSettings.php)
 
-  --wiki=<wiki>  Only back up the specified <wiki>
+Actions (one of these options is required):
+  --full            Dump all revisions of every page.
+  --current         Dump only the latest revision of every page.
+  --logs            Dump all log events.
+  --stable          Stable versions of pages (if FlaggedRevs is installed).
+  --revrange        Dump specified range of revisions, requires
+                    revstart and revend options.
+
+Options:
+  --revstart=n      Start from rev_id n
+  --revend=n        Stop before rev_id n (exclusive)
+  --start=n         Start from page_id or log_id n
+  --end=n           Stop before page_id or log_id n (exclusive)
+  --pagelist=<file> Dump pages with names listed in <file>
+
+  --quiet           Don't dump status reports to stderr.
+  --report=n        Report position and speed after every n pages processed.
+                    (Default: 100)
+  --server=h        Force reading from MySQL server h
+  --format=f        Select dump format: xml, xml-base64 or multipart-zip
+    xml: only includes page text and image URLs. suitable for moving uploads
+      if destination wiki has direct HTTP access to this one.
+    multipart-zip: includes image contents in ZIP (only for MediaWiki4Intranet)
+    xml-base64: includes image contents in base64 (for original MediaWiki, 30% size overhead)
+  --conf=<file>     Use the specified configuration file (LocalSettings.php)
+  --outfile=<file>  Save output to <file> (default is stdout)
 
 Fancy stuff: (Works? Add examples please.)
-  --plugin=<class>[:<file>]   Load a dump plugin class
-  --output=<type>:<file>      Begin a filtered output stream;
-                              <type>s: file, gzip, bzip2, 7zip
-  --filter=<type>[:<options>] Add a filter on an output branch
+  --stub            Don't perform old_text lookups; for 2-pass dump
 
 ENDS
 	);

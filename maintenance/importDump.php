@@ -1,6 +1,6 @@
 <?php
 /**
- * Import XML dump files into the current wiki.
+ * Import XML/ZIP dump files into the current wiki.
  *
  * Copyright © 2005 Brion Vibber <brion@pobox.com>
  * https://www.mediawiki.org/
@@ -24,10 +24,12 @@
  * @ingroup Maintenance
  */
 
+declare(ticks = 1);
+
 require_once __DIR__ . '/Maintenance.php';
 
 /**
- * Maintenance script that imports XML dump files into the current wiki.
+ * Maintenance script that imports XML/ZIP dump files into the current wiki.
  *
  * @ingroup Maintenance
  */
@@ -35,8 +37,9 @@ class BackupReader extends Maintenance {
 	public $reportingInterval = 100;
 	public $pageCount = 0;
 	public $revCount = 0;
+	public $uploadCount = 0;
 	public $dryRun = false;
-	public $uploads = false;
+	public $noUploads = false;
 	public $imageBasePath = false;
 	public $nsFilter = false;
 
@@ -50,13 +53,8 @@ class BackupReader extends Maintenance {
 			: '(disabled; requires PHP bzip2 module)';
 
 		$this->mDescription = <<<TEXT
-This script reads pages from an XML file as produced from Special:Export or
+This script reads pages from an XML or ZIP file as produced from Special:Export or
 dumpBackup.php, and saves them into the current wiki.
-
-Compressed XML files may be read directly:
-  .gz $gz
-  .bz2 $bz2
-  .7z (if 7za executable is in PATH)
 
 Note that for very large data sets, importDump.php may be slow; there are
 alternate methods which can be much faster for full site restoration:
@@ -65,21 +63,28 @@ TEXT;
 		$this->stderr = fopen( "php://stderr", "wt" );
 		$this->addOption( 'report',
 			'Report position and speed after every n pages processed', false, true );
-		$this->addOption( 'namespaces',
-			'Import only the pages from namespaces belonging to the list of ' .
-			'pipe-separated namespace names or namespace indexes', false, true );
-		$this->addOption( 'dry-run', 'Parse dump without actually importing pages' );
+		// FIXME: namespace filter does not work
+		//$this->addOption( 'namespaces',
+		//	'Import only the pages from namespaces belonging to the list of ' .
+		//	'pipe-separated namespace names or namespace indexes', false, true );
+		// FIXME: dry run does not work
+		//$this->addOption( 'dry-run', 'Parse dump without actually importing pages' );
 		$this->addOption( 'debug', 'Output extra verbose debug information' );
-		$this->addOption( 'uploads', 'Process file upload data if included (experimental)' );
+		$this->addOption( 'no-uploads', 'Do not process file upload data even if included' );
 		$this->addOption(
 			'no-updates',
 			'Disable link table updates. Is faster but leaves the wiki in an inconsistent state'
 		);
 		$this->addOption( 'image-base-path', 'Import files from a specified path', false, true );
-		$this->addArg( 'file', 'Dump file to import [else use stdin]', false );
+		$this->addArg( 'file', 'Dump file to import', false );
 	}
 
 	public function execute() {
+		if ( function_exists( 'pcntl_signal' ) ) {
+			// So DumpArchive removes temporary files on Ctrl-C
+			pcntl_signal( SIGINT, function() { exit(); } );
+		}
+
 		if ( wfReadOnly() ) {
 			$this->error( "Wiki is in read-only mode; you'll need to disable it for import to work.", true );
 		}
@@ -89,8 +94,8 @@ TEXT;
 			$this->reportingInterval = 100; // avoid division by zero
 		}
 
-		$this->dryRun = $this->hasOption( 'dry-run' );
-		$this->uploads = $this->hasOption( 'uploads' ); // experimental!
+		//$this->dryRun = $this->hasOption( 'dry-run' );
+		$this->noUploads = $this->hasOption( 'no-uploads' );
 		if ( $this->hasOption( 'image-base-path' ) ) {
 			$this->imageBasePath = $this->getOption( 'image-base-path' );
 		}
@@ -98,11 +103,11 @@ TEXT;
 			$this->setNsfilter( explode( '|', $this->getOption( 'namespaces' ) ) );
 		}
 
-		if ( $this->hasArg() ) {
-			$this->importFromFile( $this->getArg() );
-		} else {
-			$this->importFromStdin();
+		if ( !$this->getArg() ) {
+			$this->error( "Please specify the input file" );
+			return;
 		}
+		$this->importFromFile( $this->getArg() );
 
 		$this->output( "Done!\n" );
 		$this->output( "You might want to run rebuildrecentchanges.php to regenerate RecentChanges\n" );
@@ -149,29 +154,18 @@ TEXT;
 
 	function reportPage( $page ) {
 		$this->pageCount++;
+		$this->report();
+		$args = func_get_args();
+		return call_user_func_array( $this->pageOutCallback, $args );
 	}
 
 	/**
 	 * @param Revision $rev
 	 */
 	function handleRevision( $rev ) {
-		$title = $rev->getTitle();
-		if ( !$title ) {
-			$this->progress( "Got bogus revision with null title!" );
-
-			return;
-		}
-
-		if ( $this->skippedNamespace( $title ) ) {
-			return;
-		}
-
 		$this->revCount++;
-		$this->report();
-
-		if ( !$this->dryRun ) {
-			call_user_func( $this->importCallback, $rev );
-		}
+		$args = func_get_args();
+		return call_user_func_array( $this->revisionCallback, $args );
 	}
 
 	/**
@@ -179,36 +173,15 @@ TEXT;
 	 * @return bool
 	 */
 	function handleUpload( $revision ) {
-		if ( $this->uploads ) {
-			if ( $this->skippedNamespace( $revision ) ) {
-				return false;
-			}
-			$this->uploadCount++;
-			// $this->report();
-			$this->progress( "upload: " . $revision->getFilename() );
-
-			if ( !$this->dryRun ) {
-				// bluuuh hack
-				// call_user_func( $this->uploadCallback, $revision );
-				$dbw = wfGetDB( DB_MASTER );
-
-				return $dbw->deadlockLoop( array( $revision, 'importUpload' ) );
-			}
-		}
-
-		return false;
+		$this->uploadCount++;
+		$args = func_get_args();
+		return call_user_func_array( $this->uploadCallback, $args );
 	}
 
 	function handleLogItem( $rev ) {
-		if ( $this->skippedNamespace( $rev ) ) {
-			return;
-		}
 		$this->revCount++;
-		$this->report();
-
-		if ( !$this->dryRun ) {
-			call_user_func( $this->logItemCallback, $rev );
-		}
+		$args = func_get_args();
+		return call_user_func_array( $this->logItemCallback, $args );
 	}
 
 	function report( $final = false ) {
@@ -227,11 +200,11 @@ TEXT;
 				$rate = '-';
 				$revrate = '-';
 			}
-			# Logs dumps don't have page tallies
+			// Log dumps don't have page tallies
 			if ( $this->pageCount ) {
-				$this->progress( "$this->pageCount ($rate pages/sec $revrate revs/sec)" );
+				$this->progress( "Imported $this->pageCount pages, $this->revCount revisions, $this->uploadCount uploads ($rate pages/sec $revrate revs/sec)" );
 			} else {
-				$this->progress( "$this->revCount ($revrate revs/sec)" );
+				$this->progress( "Imported $this->revCount revisions ($revrate revs/sec)" );
 			}
 		}
 		wfWaitForSlaves();
@@ -244,49 +217,24 @@ TEXT;
 	}
 
 	function importFromFile( $filename ) {
-		if ( preg_match( '/\.gz$/', $filename ) ) {
-			$filename = 'compress.zlib://' . $filename;
-		} elseif ( preg_match( '/\.bz2$/', $filename ) ) {
-			$filename = 'compress.bzip2://' . $filename;
-		} elseif ( preg_match( '/\.7z$/', $filename ) ) {
-			$filename = 'mediawiki.compress.7z://' . $filename;
-		}
-
-		$file = fopen( $filename, 'rt' );
-
-		return $this->importFromHandle( $file );
-	}
-
-	function importFromStdin() {
-		$file = fopen( 'php://stdin', 'rt' );
-		if ( self::posix_isatty( $file ) ) {
-			$this->maybeHelp( true );
-		}
-
-		return $this->importFromHandle( $file );
-	}
-
-	function importFromHandle( $handle ) {
 		$this->startTime = microtime( true );
 
-		$source = new ImportStreamSource( $handle );
-		$importer = new WikiImporter( $source, $this->getConfig() );
-
+		$importer = DumpArchive::newFromFile( $filename, NULL, $this->getConfig() );
+		if ( !$importer ) {
+			die( "Cannot read dump archive $filename\n" );
+		}
 		if ( $this->hasOption( 'debug' ) ) {
 			$importer->setDebug( true );
 		}
 		if ( $this->hasOption( 'no-updates' ) ) {
 			$importer->setNoUpdates( true );
 		}
-		$importer->setPageCallback( array( &$this, 'reportPage' ) );
-		$this->importCallback = $importer->setRevisionCallback(
-			array( &$this, 'handleRevision' ) );
-		$this->uploadCallback = $importer->setUploadCallback(
-			array( &$this, 'handleUpload' ) );
-		$this->logItemCallback = $importer->setLogItemCallback(
-			array( &$this, 'handleLogItem' ) );
-		if ( $this->uploads ) {
-			$importer->setImportUploads( true );
+		$this->pageOutCallback = $importer->setPageOutCallback( array( &$this, 'reportPage' ) );
+		$this->revisionCallback = $importer->setRevisionCallback( array( &$this, 'handleRevision' ) );
+		$this->uploadCallback = $importer->setUploadCallback( array( &$this, 'handleUpload' ) );
+		$this->logItemCallback = $importer->setLogItemCallback( array( &$this, 'handleLogItem' ) );
+		if ( $this->noUploads ) {
+			$importer->setImportUploads( false );
 		}
 		if ( $this->imageBasePath ) {
 			$importer->setImageBasePath( $this->imageBasePath );

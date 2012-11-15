@@ -1233,6 +1233,7 @@ class LocalFile extends File {
 			$timestamp = $dbw->timestamp();
 			$allowTimeKludge = true;
 		} else {
+			$timestamp = $dbw->timestamp( $timestamp );
 			$allowTimeKludge = false;
 		}
 

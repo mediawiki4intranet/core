@@ -1000,6 +1000,13 @@ return array(
 		),
 		'targets' => array( 'desktop', 'mobile' ),
 	),
+	'mediawiki.pageselector' => array(
+		'position' => 'top',
+		'styles' => array(
+			'resources/src/mediawiki/mediawiki.pageselector.css',
+		),
+		'targets' => array( 'desktop', 'mobile' ),
+	),
 	'mediawiki.helplink' => array(
 		'position' => 'top',
 		'styles' => array(

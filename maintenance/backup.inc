@@ -27,38 +27,24 @@
 /**
  * @ingroup Dump Maintenance
  */
-class DumpDBZip2Output extends DumpPipeOutput {
-	function __construct( $file ) {
-		parent::__construct( "dbzip2", $file );
-	}
-}
-
-/**
- * @ingroup Dump Maintenance
- */
 class BackupDumper {
 	public $reporting = true;
 	public $pages = null; // all pages
-	public $skipHeader = false; // don't output <mediawiki> and <siteinfo>
-	public $skipFooter = false; // don't output </mediawiki>
 	public $startId = 0;
 	public $endId = 0;
 	public $revStartId = 0;
 	public $revEndId = 0;
-	public $dumpUploads = false;
-	public $dumpUploadFileContents = false;
+	public $format = 'xml';
 
 	protected $reportingInterval = 100;
 	protected $pageCount = 0;
 	protected $revCount = 0;
 	protected $server = null; // use default
-	protected $sink = null; // Output filters
 	protected $lastTime = 0;
 	protected $pageCountLast = 0;
 	protected $revCountLast = 0;
 
-	protected $outputTypes = array();
-	protected $filterTypes = array();
+	protected $outputFilename = NULL;
 
 	protected $ID = 0;
 
@@ -74,55 +60,9 @@ class BackupDumper {
 	/** @var LoadBalancer */
 	protected $lb;
 
-	// @todo Unused?
-	private $stubText = false; // include rev_text_id instead of text; for 2-pass dump
-
 	function __construct( $args ) {
 		$this->stderr = fopen( "php://stderr", "wt" );
-
-		// Built-in output and filter plugins
-		$this->registerOutput( 'file', 'DumpFileOutput' );
-		$this->registerOutput( 'gzip', 'DumpGZipOutput' );
-		$this->registerOutput( 'bzip2', 'DumpBZip2Output' );
-		$this->registerOutput( 'dbzip2', 'DumpDBZip2Output' );
-		$this->registerOutput( '7zip', 'Dump7ZipOutput' );
-
-		$this->registerFilter( 'latest', 'DumpLatestFilter' );
-		$this->registerFilter( 'notalk', 'DumpNotalkFilter' );
-		$this->registerFilter( 'namespace', 'DumpNamespaceFilter' );
-
-		$this->sink = $this->processArgs( $args );
-	}
-
-	/**
-	 * @param string $name
-	 * @param string $class Name of output filter plugin class
-	 */
-	function registerOutput( $name, $class ) {
-		$this->outputTypes[$name] = $class;
-	}
-
-	/**
-	 * @param string $name
-	 * @param string $class Name of filter plugin class
-	 */
-	function registerFilter( $name, $class ) {
-		$this->filterTypes[$name] = $class;
-	}
-
-	/**
-	 * Load a plugin and register it
-	 *
-	 * @param string $class Name of plugin class; must have a static 'register'
-	 *   method that takes a BackupDumper as a parameter.
-	 * @param string $file Full or relative path to the PHP file to load, or empty
-	 */
-	function loadPlugin( $class, $file ) {
-		if ( $file != '' ) {
-			require_once $file;
-		}
-		$register = array( $class, 'register' );
-		call_user_func_array( $register, array( &$this ) );
+		$this->processArgs( $args );
 	}
 
 	/**
@@ -130,8 +70,6 @@ class BackupDumper {
 	 * @return array
 	 */
 	function processArgs( $args ) {
-		$sink = null;
-		$sinks = array();
 		foreach ( $args as $arg ) {
 			$matches = array();
 			if ( preg_match( '/^--(.+?)(?:=(.+?)(?::(.+?))?)?$/', $arg, $matches ) ) {
@@ -140,33 +78,8 @@ class BackupDumper {
 				MediaWiki\restoreWarnings();
 
 				switch ( $opt ) {
-					case "plugin":
-						$this->loadPlugin( $val, $param );
-						break;
-					case "output":
-						if ( !is_null( $sink ) ) {
-							$sinks[] = $sink;
-						}
-						if ( !isset( $this->outputTypes[$val] ) ) {
-							$this->fatalError( "Unrecognized output sink type '$val'" );
-						}
-						$type = $this->outputTypes[$val];
-						$sink = new $type( $param );
-						break;
-					case "filter":
-						if ( is_null( $sink ) ) {
-							$sink = new DumpOutput();
-						}
-						if ( !isset( $this->filterTypes[$val] ) ) {
-							$this->fatalError( "Unrecognized filter type '$val'" );
-						}
-						$type = $this->filterTypes[$val];
-						$filter = new $type( $sink, $param );
-
-						// references are lame in php...
-						unset( $sink );
-						$sink = $filter;
-
+					case "outfile":
+						$this->outputFilename = $val;
 						break;
 					case "report":
 						$this->reportingInterval = intval( $val );
@@ -185,17 +98,6 @@ class BackupDumper {
 				}
 			}
 		}
-
-		if ( is_null( $sink ) ) {
-			$sink = new DumpOutput();
-		}
-		$sinks[] = $sink;
-
-		if ( count( $sinks ) > 1 ) {
-			return new DumpMultiWriter( $sinks );
-		} else {
-			return $sink;
-		}
 	}
 
 	function processOption( $opt, $val, $param ) {
@@ -212,16 +114,15 @@ class BackupDumper {
 		$this->initProgress( $history );
 
 		$db = $this->backupDb();
-		$exporter = new WikiExporter( $db, $history, WikiExporter::STREAM, $text );
-		$exporter->dumpUploads = $this->dumpUploads;
-		$exporter->dumpUploadFileContents = $this->dumpUploadFileContents;
+		$exporter = new WikiExporter(
+			$db, $history, WikiExporter::STREAM, $text,
+			false, $this->format
+		);
 
-		$wrapper = new ExportProgressFilter( $this->sink, $this );
-		$exporter->setOutputSink( $wrapper );
+		$wrapper = new ExportProgressFilter( $exporter->writer, $this );
+		$exporter->setDumpWriter( $wrapper );
 
-		if ( !$this->skipHeader ) {
-			$exporter->openStream();
-		}
+		$exporter->openStream();
 		# Log item dumps: all or by range
 		if ( $history & WikiExporter::LOGS ) {
 			if ( $this->startId || $this->endId ) {
@@ -243,8 +144,15 @@ class BackupDumper {
 			$exporter->pagesByName( $this->pages );
 		}
 
-		if ( !$this->skipFooter ) {
-			$exporter->closeStream();
+		$exporter->closeStream();
+		if ( !$exporter->getArchive( $fn, $mime, $ext ) ) {
+			$this->fatalError( "Cannot get dump archive" );
+		}
+
+		if ( $this->outputFilename ) {
+			rename( $fn, $this->outputFilename );
+		} else {
+			readfile( $fn );
 		}
 
 		$this->report( true );
@@ -381,18 +289,20 @@ class BackupDumper {
 }
 
 class ExportProgressFilter extends DumpFilter {
-	function __construct( &$sink, &$progress ) {
+
+	function __construct( DumpWriter $sink, $progress ) {
 		parent::__construct( $sink );
 		$this->progress = $progress;
 	}
 
-	function writeClosePage( $string ) {
-		parent::writeClosePage( $string );
+	function closePage() {
 		$this->progress->reportPage();
+		return parent::closePage();
 	}
 
-	function writeRevision( $rev, $string ) {
-		parent::writeRevision( $rev, $string );
+	function writeRevision( $row ) {
 		$this->progress->revCount();
+		return parent::writeRevision( $row );
 	}
+
 }

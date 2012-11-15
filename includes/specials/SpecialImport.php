@@ -24,6 +24,94 @@
  * @ingroup SpecialPage
  */
 
+class ImportSource {
+	/**
+	 * @param $fieldname string
+	 * @return Status
+	 */
+	static function newFromUpload( $fieldname = "xmlimport" ) {
+		$upload =& $_FILES[$fieldname];
+
+		if( !isset( $upload ) || !$upload['name'] ) {
+			return Status::newFatal( 'importnofile' );
+		}
+		if( !empty( $upload['error'] ) ) {
+			switch($upload['error']){
+				case 1: # The uploaded file exceeds the upload_max_filesize directive in php.ini.
+					return Status::newFatal( 'importuploaderrorsize' );
+				case 2: # The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.
+					return Status::newFatal( 'importuploaderrorsize' );
+				case 3: # The uploaded file was only partially uploaded
+					return Status::newFatal( 'importuploaderrorpartial' );
+				case 6: #Missing a temporary folder.
+					return Status::newFatal( 'importuploaderrortemp' );
+				# case else: # Currently impossible
+			}
+
+		}
+		$fname = $upload['tmp_name'];
+		if( is_uploaded_file( $fname ) ) {
+			$archive = DumpArchive::newFromFile( $fname, $upload['name'] );
+			if ( !$archive ) {
+				return Status::newFatal( 'importunknownformat' );
+			}
+			return Status::newGood( $archive );
+		} else {
+			return Status::newFatal( 'importnofile' );
+		}
+	}
+
+	/**
+	 * @param $url
+	 * @param $method string
+	 * @return Status
+	 */
+	static function newFromURL( $url, $method = 'GET' ) {
+		wfDebug( __METHOD__ . ": opening $url\n" );
+		# Use the standard HTTP fetch function; it times out
+		# quicker and sorts out user-agent problems which might
+		# otherwise prevent importing from large sites, such
+		# as the Wikimedia cluster, etc.
+		$data = Http::request( $method, $url, array( 'followRedirects' => true ) );
+		if( $data !== false ) {
+			$file = tmpfile();
+			fwrite( $file, $data );
+			fflush( $file );
+			fseek( $file, 0 );
+			return Status::newGood( DumpArchive::newFromFile( $file ) );
+		} else {
+			return Status::newFatal( 'importcantopen' );
+		}
+	}
+
+	/**
+	 * @param $interwiki
+	 * @param $page
+	 * @param $history bool
+	 * @param $templates bool
+	 * @param $pageLinkDepth int
+	 * @return Status
+	 */
+	static function newFromInterwiki( $interwiki, $page, $history = false, $templates = false, $pageLinkDepth = 0 ) {
+		if( $page == '' ) {
+			return Status::newFatal( 'import-noarticle' );
+		}
+		$link = Title::newFromText( "$interwiki:Special:Export/$page" );
+		if( is_null( $link ) || $link->getInterwiki() == '' ) {
+			return Status::newFatal( 'importbadinterwiki' );
+		} else {
+			$params = array();
+			if ( $history ) $params['history'] = 1;
+			if ( $templates ) $params['templates'] = 1;
+			if ( $pageLinkDepth ) $params['pagelink-depth'] = $pageLinkDepth;
+			$url = $link->getFullUrl( $params );
+			# For interwikis, use POST to avoid redirects.
+			return self::newFromURL( $url, "POST" );
+		}
+	}
+
+}
+
 /**
  * MediaWiki page data importer
  *
@@ -122,11 +210,11 @@ class SpecialImport extends SpecialPage {
 
 		$user = $this->getUser();
 		if ( !$user->matchEditToken( $request->getVal( 'editToken' ) ) ) {
-			$source = Status::newFatal( 'import-token-mismatch' );
-		} elseif ( $this->sourceName === 'upload' ) {
+			$importer = Status::newFatal( 'import-token-mismatch' );
+		} elseif ( $this->sourceName == 'upload' ) {
 			$isUpload = true;
-			if ( $user->isAllowed( 'importupload' ) ) {
-				$source = ImportStreamSource::newFromUpload( "xmlimport" );
+			if( $user->isAllowed( 'importupload' ) ) {
+				$importer = ImportSource::newFromUpload( "xmlimport" );
 			} else {
 				throw new PermissionsError( 'importupload' );
 			}
@@ -139,19 +227,19 @@ class SpecialImport extends SpecialPage {
 			$importSources = $this->getConfig()->get( 'ImportSources' );
 			$hasSubprojects = array_key_exists( $this->interwiki, $importSources );
 			if ( !$hasSubprojects && !in_array( $this->interwiki, $importSources ) ) {
-				$source = Status::newFatal( "import-invalid-interwiki" );
+				$importer = Status::newFatal( "import-invalid-interwiki" );
 			} else {
 				if ( $hasSubprojects ) {
 					$this->subproject = $request->getVal( 'subproject' );
 					$this->fullInterwikiPrefix .= ':' . $request->getVal( 'subproject' );
 				}
 				if ( $hasSubprojects && !in_array( $this->subproject, $importSources[$this->interwiki] ) ) {
-					$source = Status::newFatal( "import-invalid-interwiki" );
+					$importer = Status::newFatal( "import-invalid-interwiki" );
 				} else {
 					$this->history = $request->getCheck( 'interwikiHistory' );
 					$this->frompage = $request->getText( "frompage" );
 					$this->includeTemplates = $request->getCheck( 'interwikiTemplates' );
-					$source = ImportStreamSource::newFromInterwiki(
+					$importer = ImportSource::newFromInterwiki(
 						$this->fullInterwikiPrefix,
 						$this->frompage,
 						$this->history,
@@ -160,17 +248,20 @@ class SpecialImport extends SpecialPage {
 				}
 			}
 		} else {
-			$source = Status::newFatal( "importunknownsource" );
+			$importer = Status::newFatal( "importunknownsource" );
+		}
+		if( !$importer ) {
+			$importer = Status::newFatal( "importunknownformat" );
 		}
 
 		$out = $this->getOutput();
-		if ( !$source->isGood() ) {
+		if ( !$importer->isGood() ) {
 			$out->wrapWikiMsg(
 				"<p class=\"error\">\n$1\n</p>",
-				array( 'importfailed', $source->getWikiText() )
+				array( 'importfailed', $importer->getWikiText() )
 			);
 		} else {
-			$importer = new WikiImporter( $source->value, $this->getConfig() );
+			$importer = $importer->value;
 			if ( !is_null( $this->namespace ) ) {
 				$importer->setTargetNamespace( $this->namespace );
 			} elseif ( !is_null( $this->rootpage ) ) {
@@ -575,6 +666,8 @@ class ImportReporter extends ContextSource {
 	 */
 	function reportPage( $title, $foreignTitle, $revisionCount,
 			$successCount, $pageInfo ) {
+		global $wgLang, $wgContLang;
+
 		$args = func_get_args();
 		call_user_func_array( $this->mOriginalPageOutCallback, $args );
 
@@ -583,16 +676,66 @@ class ImportReporter extends ContextSource {
 			return;
 		}
 
+		$skin = $this->getUser()->getSkin();
+
 		$this->mPageCount++;
 
-		if ( $successCount > 0 ) {
-			$this->getOutput()->addHTML(
-				"<li>" . Linker::linkKnown( $title ) . " " .
-					$this->msg( 'import-revision-count' )->numParams( $successCount )->escaped() .
-					"</li>\n"
-			);
+		$localCount = $wgLang->formatNum( $successCount );
+		$contentCount = $wgContLang->formatNum( $successCount );
+		$lastRevision = $pageInfo['lastRevision'];
+		$lastExistingRevision = $pageInfo['lastExistingRevision'];
+		$lastLocalRevision = $pageInfo['lastLocalRevision'];
 
-			if ( $this->mIsUpload ) {
+		/* No revisions in import */
+		if ( !$lastExistingRevision && $successCount == 0 ) {
+			$msg = wfMsgHtml( 'import-norevisions' );
+		} elseif ( !$lastLocalRevision && $successCount > 0 ) {
+			// New page imported
+			$msg = wfMsgExt( 'import-revision-count-newpage', array( 'parsemag', 'escape' ), $localCount );
+		} else {
+			$newer = !$lastExistingRevision ||
+				$lastLocalRevision->getTimestamp() > $lastExistingRevision->getTimestamp();
+			if ( $successCount > 0 ) {
+				if ( $newer ) {
+					// "Conflict"
+					$linktext = wfMsgExt( 'import-conflict-difflink',
+						array( 'parsemag', 'escape' ),
+						$lastRevision->getId(),
+						$lastLocalRevision->getId() );
+					$link = $skin->makeKnownLinkObj(
+						$title, $linktext,
+						'diff=' . $lastRevision->getId() .
+						"&oldid=" . $lastLocalRevision->getId() );
+					$msg = wfMsgExt( 'import-conflict',
+						array( 'parsemag' ),
+						$localCount,
+						$link );
+				} else {
+					// Page history continued with new revisions
+					$msg = wfMsgExt( 'import-revision-count', array( 'parsemag', 'escape' ), $localCount );
+				}
+			} else {
+				if ( $newer ) {
+					// Local revision is newer
+					$msg = wfMsgHtml( 'import-nonewrevisions-localnewer' );
+				} else {
+					// No changes nowhere
+					$msg = wfMsgHtml( 'import-nonewrevisions' );
+				}
+			}
+		}
+		if ( isset( $pageInfo[ 'fileRevisionsUploaded' ] ) ) {
+			$msg .= wfMsgExt( 'import-file-revisions', array( 'parsemag', 'escape' ), $pageInfo[ 'fileRevisionsUploaded' ] );
+		}
+
+		$msg = $skin->makeKnownLinkObj( $title ) . ': ' . $msg;
+
+		$out = $this->getOutput();
+		$out->addHtml( "<li>$msg</li>" );
+
+		if( $successCount > 0 ) {
+			$log = new LogPage( 'import' );
+			if( $this->mIsUpload ) {
 				$detail = $this->msg( 'import-logentry-upload-detail' )->numParams(
 					$successCount )->inContentLanguage()->text();
 				if ( $this->reason ) {
@@ -611,38 +754,9 @@ class ImportReporter extends ContextSource {
 				}
 				$action = 'interwiki';
 			}
-
-			$logEntry = new ManualLogEntry( 'import', $action );
-			$logEntry->setTarget( $title );
-			$logEntry->setComment( $detail );
-			$logEntry->setPerformer( $this->getUser() );
-			$logid = $logEntry->insert();
-			$logEntry->publish( $logid );
-
-			$comment = $detail; // quick
-			$dbw = wfGetDB( DB_MASTER );
-			$latest = $title->getLatestRevID();
-			$nullRevision = Revision::newNullRevision(
-				$dbw,
-				$title->getArticleID(),
-				$comment,
-				true,
-				$this->getUser()
-			);
-
-			if ( !is_null( $nullRevision ) ) {
-				$nullRevision->insertOn( $dbw );
-				$page = WikiPage::factory( $title );
-				# Update page record
-				$page->updateRevisionOn( $dbw, $nullRevision );
-				Hooks::run(
-					'NewRevisionFromEditComplete',
-					array( $page, $nullRevision, $latest, $this->getUser() )
-				);
-			}
-		} else {
-			$this->getOutput()->addHTML( "<li>" . Linker::linkKnown( $title ) . " " .
-				$this->msg( 'import-nonewrevisions' )->escaped() . "</li>\n" );
+			// [MediaWiki4Intranet] do not insert any empty revisions because it leads
+			// to fancy bugs (infinitely multiplicated revisions) in the case of cross
+			// (2-way) import-export.
 		}
 	}
 
