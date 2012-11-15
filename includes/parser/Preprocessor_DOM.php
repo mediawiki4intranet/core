@@ -1155,20 +1155,21 @@ class PPFrame_DOM implements PPFrame {
 
 					# Insert a heading marker only for <h> children of <root>
 					# This is to stop extractSections from going over multiple tree levels
-					if ( $contextNode->parentNode->nodeName == 'root'
-					  && $this->parser->ot['html'] )
-					{
-						# Insert heading index marker
-						$headingIndex = $contextNode->getAttribute( 'i' );
-						$titleText = $this->title->getPrefixedDBkey();
-						$this->parser->mHeadings[] = array( $titleText, $headingIndex );
-						$serial = count( $this->parser->mHeadings ) - 1;
-						$marker = "{$this->parser->mUniqPrefix}-h-$serial-" . Parser::MARKER_SUFFIX;
-						$count = $contextNode->getAttribute( 'level' );
-						$s = substr( $s, 0, $count ) . $marker . substr( $s, $count );
-						$this->parser->mStripState->addGeneral( $marker, '' );
+					if ( $s != str_repeat( '=', $contextNode->getAttribute( 'level' ) * 2 ) ) {
+						if ( $contextNode->parentNode->nodeName == 'root'
+						  && $this->parser->ot['html'] ) {
+							# Insert heading index marker
+							$headingIndex = $contextNode->getAttribute( 'i' );
+							$titleText = $this->title->getPrefixedDBkey();
+							$this->parser->mHeadings[] = array( $titleText, $headingIndex );
+							$serial = count( $this->parser->mHeadings ) - 1;
+							$marker = "{$this->parser->mUniqPrefix}-h-$serial-" . Parser::MARKER_SUFFIX;
+							$count = $contextNode->getAttribute( 'level' );
+							$s = substr( $s, 0, $count ) . $marker . substr( $s, $count );
+							$this->parser->mStripState->addGeneral( $marker, '' );
+						}
+						$out .= $s;
 					}
-					$out .= $s;
 				} else {
 					# Generic recursive expansion
 					$newIterator = $contextNode->childNodes;
