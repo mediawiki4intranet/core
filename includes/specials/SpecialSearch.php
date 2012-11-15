@@ -666,7 +666,7 @@ class SpecialSearch extends SpecialPage {
 		if( $t->getNamespace() == NS_FILE ) {
 			$img = wfFindFile( $t );
 			if( $img ) {
-				$thumb = $img->transform( array( 'width' => 120, 'height' => 120 ) );
+				$thumb = $img->transform( array( 'width' => 120, 'height' => 120, 'imagehistory' => true ) );
 				if( $thumb ) {
 					$desc = $this->msg( 'parentheses' )->rawParams( $img->getShortDesc() )->escaped();
 					wfProfileOut( __METHOD__ );
