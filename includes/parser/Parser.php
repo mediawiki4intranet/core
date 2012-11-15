@@ -3783,7 +3783,7 @@ class Parser {
 
 		$url = $title->getFullUrl( "action=$action" );
 
-		if ( strlen( $url ) > 255 ) {
+		if ( strlen( $url ) > 4095 ) {
 			return wfMessage( 'scarytranscludetoolong' )->inContentLanguage()->text();
 		}
 		return $this->fetchScaryTemplateMaybeFromCache( $url );

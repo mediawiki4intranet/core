@@ -1848,11 +1848,19 @@ class Title {
 	 * @return Array list of errors
 	 */
 	private function checkSpecialsAndNSPermissions( $action, $user, $errors, $doExpensiveQueries, $short ) {
+		/**
+		 * Do not deny all actions except 'createaccount'
+		 * on special pages, let them decide themselves.
+		 * -- vitalif@mail.ru 2011-04-03
+		 * <commented out>:
+		 *
 		# Only 'createaccount' can be performed on special pages,
 		# which don't actually exist in the DB.
 		if ( NS_SPECIAL == $this->mNamespace && $action !== 'createaccount' ) {
 			$errors[] = array( 'ns-specialprotected' );
 		}
+		 * </commented out>
+		 */
 
 		# Check $wgNamespaceProtection for restricted namespaces
 		if ( $this->isNamespaceProtected( $user ) ) {
@@ -4485,7 +4493,7 @@ class Title {
 		}
 
 		list( $name, $lang ) = MessageCache::singleton()->figureMessage( $wgContLang->lcfirst( $this->getText() ) );
-		$message = wfMessage( $name )->inLanguage( $lang )->useDatabase( false );
+		$message = wfMessage( $name )->inLanguage( $lang );
 
 		if ( $message->exists() ) {
 			return $message->plain();
