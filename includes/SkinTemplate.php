@@ -513,7 +513,7 @@ class SkinTemplate extends Skin {
 		if ( $this->useHeadElement ) {
 			$tpl->set( 'headelement', $out->headElement( $this ) );
 		} else {
-			$tpl->set( 'headscripts', $out->getScript() );
+			$tpl->set( 'headscripts', $out->getHeadScripts( $this ) . $out->getHeadItems() );
 		}
 
 		$tpl->set( 'debughtml', $this->generateDebugHTML() );
