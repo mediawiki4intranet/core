@@ -3976,6 +3976,11 @@ class Parser {
 
 			# Don't number the heading if it is the only one (looks silly)
 			if ( count( $matches[3] ) > 1 && $this->mOptions->getNumberHeadings() ) {
+				# CustIS Bug 54239 - Number [[#Section|Section]] links
+				if ( empty( $headNumberReplacer ) ) {
+					$headNumberReplacer = new ReplacementArray();
+				}
+				$headNumberReplacer->setPair('>'.$headlineHint.'</a>', '>'.$numbering.' '.$headlineHint.'</a>');
 				# the two are different if the line contains a link
 				$headline = $numbering . ' ' . $headline;
 			}
@@ -4070,6 +4075,10 @@ class Parser {
 		if ( $isMain ) {
 			$this->mOutput->setSections( $tocraw );
 		}
+
+		# Bug 54239 - Number [[#Section|Section]] links
+		if ( !empty( $headNumberReplacer ) )
+			$text = $headNumberReplacer->replace($text);
 
 		# split up and insert constructed headlines
 
