@@ -280,6 +280,31 @@ class VectorTemplate extends BaseTemplate {
 			echo "\n<!-- {$name} -->\n";
 			switch( $name ) {
 				case 'SEARCH':
+					global $wgUseTwoButtonsSearchForm;
+?>
+<div class="portal" id="po-search">
+	<h5><label for="searchInput2"><?php $this->msg('search') ?></label></h5>
+	<div id="searchBody2" class="pBody">
+		<form action="<?php $this->text('wgScript') ?>" id="searchform2">
+			<input type='hidden' name="title" value="<?php $this->text('searchtitle') ?>"/>
+			<?php
+	echo Html::input( 'search',
+		isset( $this->data['search'] ) ? $this->data['search'] : '', 'search',
+		array(
+			'id' => 'searchInput2',
+			'title' => $this->skin->titleAttrib( 'search' ),
+			'accesskey' => $this->skin->accesskey( 'search' )
+		) ); ?>
+
+			<input type='submit' name="go" class="searchButton" id="searchGoButton2"	value="<?php $this->msg('searcharticle') ?>"<?php echo Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( 'search-go' ) ); ?> /><?php if ($wgUseTwoButtonsSearchForm) { ?>&nbsp;
+			<input type='submit' name="fulltext" class="searchButton" id="mw-searchButton2" value="<?php $this->msg('searchbutton') ?>"<?php echo Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( 'search-fulltext' ) ); ?> /><?php } else { ?>
+
+			<div><a href="<?php $this->text('searchaction') ?>" rel="search"><?php $this->msg('powersearch-legend') ?></a></div><?php } ?>
+
+		</form>
+	</div>
+</div>
+<?php
 					break;
 				case 'TOOLBOX':
 					$this->renderPortal( 'tb', $this->getToolbox(), 'toolbox', 'SkinTemplateToolboxEnd' );

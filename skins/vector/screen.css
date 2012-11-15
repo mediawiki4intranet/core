@@ -65,6 +65,35 @@ div#mw-head h5 {
 	margin: 0;
 	padding: 0;
 }
+/*
+** Search portlet
+*/
+#po-search {
+	position: relative;
+	z-index: 3;
+}
+#po-search input.searchButton {
+	margin-top: 1px;
+	font-size: 80%;
+}
+#po-search #searchGoButton2 {
+	padding-left: .5em;
+	padding-right: .5em;
+	font-weight: bold;
+}
+#po-search #searchInput2 {
+	width: 10.9em;
+	margin: 0;
+	font-size: 80%;
+}
+#po-search .pBody {
+	padding: 0;
+	text-align: center;
+}
+#po-search #searchform2 div div {
+	margin-top: .4em;
+	font-size: 80%;
+}
 	/* Hide empty portlets */
 	div.emptyPortlet {
 		display: none;
@@ -361,9 +390,18 @@ div#mw-head h5 {
 		margin: 0;
 		margin-top: 0.4em;
 	}
+	#p-search input {
+		width: 18em;
+	}
+	#p-search input#searchGoButton {
+		font-weight: bold;
+	}
+	#p-search input.searchButton {
+		width: auto;
+	}
 	div#simpleSearch {
 		display: block;
-		width: 14em;
+		width: 18em;
 		height: 1.4em;
 		margin-top: 0.65em;
 		position: relative;
@@ -453,7 +491,7 @@ div#mw-panel {
 	left: 0;
 }
 	div#mw-panel div.portal {
-		padding-bottom: 1.5em;
+		padding-bottom: 1em;
 		direction: ltr;
 	}
 	div#mw-panel div.portal h5 {
