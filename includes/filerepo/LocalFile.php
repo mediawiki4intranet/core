@@ -1142,7 +1142,7 @@ class LocalFile extends File {
 	function publishTo( $srcPath, $dstRel, $flags = 0 ) {
 		$this->lock();
 
-		$archiveName = wfTimestamp( TS_MW ) . '!'. $this->getPhys();
+		$archiveName = 'T' . wfTimestamp( TS_MW, $this->getTimestamp() ) . '!'. $this->getPhys();
 		$archiveRel = 'archive/' . $this->getHashPath() . $archiveName;
 		$flags = $flags & File::DELETE_SOURCE ? LocalRepo::DELETE_SOURCE : 0;
 		$status = $this->repo->publish( $srcPath, $dstRel, $archiveRel, $flags );

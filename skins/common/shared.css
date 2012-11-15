@@ -867,3 +867,30 @@ div.floatright, table.floatright, div.floatleft, table.floatleft {
 
 /* bug 12205 */
 #mw-credits a { unicode-bidi: embed; }
+
+/* Export page selector */
+fieldset.addpages {
+	display: inline-block;
+	margin-top: 0;
+}
+
+.addpages div {
+	float: left;
+	text-align: right;
+	vertical-align: top;
+	padding-right: 8px;
+	margin-bottom: 2px;
+}
+
+div.ap_closure {
+	clear: left;
+}
+
+div.ap_submit {
+	float: right;
+}
+
+div.ap_submit input {
+	font-weight: bold;
+	padding: 0 1em;
+}

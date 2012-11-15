@@ -1364,6 +1364,12 @@ $wgOldChangeTagsIndex = false;
  */
 
 /**
+ * Paths to zip/unzip utilities.
+ */
+$wgZip = '/usr/bin/zip';
+$wgUnzip = '/usr/bin/unzip';
+
+/**
  * We can also compress text stored in the 'text' table. If this is set on, new
  * revisions will be compressed on page save if zlib support is available. Any
  * compressed revisions will be decompressed on load regardless of this setting
@@ -3675,6 +3681,28 @@ $wgDeleteRevisionsLimit = 0;
 /** Number of accounts each IP address may create, 0 to disable.
  * Requires memcached */
 $wgAccountCreationThrottle = 0;
+
+/**
+ * Import/export formats
+ */
+$wgExportFormats = array(
+	array(
+		'extension' => 'xml',
+		'mimetype' => 'application/xml',
+		'reader' => 'WikiImporter',
+		'writer' => 'XmlDumpWriter',
+	),
+);
+
+/**
+ * Archive classes for import
+ */
+$wgDumpArchiveByExt = array(
+	'xml' => array( 'OldMultipartDumpArchive', 'StubDumpArchive' ),
+	'multipart' => array( 'OldMultipartDumpArchive' ),
+	'zip' => array( 'ZipDumpArchive' ),
+	'' => array( 'ZipDumpArchive', 'StubDumpArchive' ),
+);
 
 /**
  * Edits matching these regular expressions in body text
