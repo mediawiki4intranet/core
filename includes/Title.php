@@ -1847,28 +1847,44 @@ class Title {
 	 * @param $doExpensiveQueries Boolean whether or not to perform expensive queries
 	 * @param $short Boolean short circuit on first error
 	 *
-	 * @return Array list of errors
+	 * @return boolean Whether to continue permission hook processing
 	 */
-	private function checkPermissionHooks( $action, $user, $errors, $doExpensiveQueries, $short ) {
+	private function checkPermissionHooks( $action, $user, &$errors, $doExpensiveQueries, $short ) {
 		// Use getUserPermissionsErrors instead
-		$result = '';
+		$result = true;
 		if ( !wfRunHooks( 'userCan', array( &$this, &$user, $action, &$result ) ) ) {
-			return $result ? array() : array( array( 'badaccess-group0' ) );
+			if ( !$result ) {
+				$errors[] = array( 'badaccess-group0' );
+			} elseif ( !$errors ) {
+				$errors = array();
+			}
+			return false;
 		}
 		// Check getUserPermissionsErrors hook
-		if ( !wfRunHooks( 'getUserPermissionsErrors', array( &$this, &$user, $action, &$result ) ) ) {
-			$errors = $this->resultToError( $errors, $result );
+		$result = true;
+		if ( !wfRunHooks( 'getUserPermissionsErrors', array( &$this, &$user, $action, &$result, &$errors, $short ) ) ) {
+			if ( $result !== true ) {
+				// Backwards compatibility
+				$errors = $this->resultToError( $errors, $result );
+			} elseif ( !$errors ) {
+				$errors = array();
+			}
+			return false;
 		}
 		// Check getUserPermissionsErrorsExpensive hook
-		if (
-			$doExpensiveQueries
-			&& !( $short && count( $errors ) > 0 )
-			&& !wfRunHooks( 'getUserPermissionsErrorsExpensive', array( &$this, &$user, $action, &$result ) )
-		) {
-			$errors = $this->resultToError( $errors, $result );
+		$result = true;
+		if ( $doExpensiveQueries &&
+			 !wfRunHooks( 'getUserPermissionsErrorsExpensive', array( &$this, &$user, $action, &$result, &$errors, $short ) ) ) {
+			if ( $result !== true ) {
+				// Backwards compatibility
+				$errors = $this->resultToError( $errors, $result );
+			} elseif ( !$errors ) {
+				$errors = array();
+			}
+			return false;
 		}
 
-		return $errors;
+		return true;
 	}
 
 	/**
@@ -2287,13 +2303,11 @@ class Title {
 		# Read has special handling
 		if ( $action == 'read' ) {
 			$checks = array(
-				'checkPermissionHooks',
 				'checkReadPermissions',
 			);
 		} else {
 			$checks = array(
 				'checkQuickPermissions',
-				'checkPermissionHooks',
 				'checkSpecialsAndNSPermissions',
 				'checkCSSandJSPermissions',
 				'checkPageRestrictions',
@@ -2301,6 +2315,11 @@ class Title {
 				'checkActionPermissions',
 				'checkUserBlock'
 			);
+		}
+
+		if ( !$this->checkPermissionHooks( $action, $user, $errors, $doExpensiveQueries, $short ) ) {
+			// Give extensions a chance to override anything
+			return $errors;
 		}
 
 		$errors = array();
