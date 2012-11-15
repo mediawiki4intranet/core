@@ -868,6 +868,7 @@ class EditPage {
 	function internalAttemptSave( &$result, $bot = false ) {
 		global $wgFilterCallback, $wgUser, $wgParser;
 		global $wgMaxArticleSize;
+		global $wgSuppressSameUserConflicts;
 		
 		$status = Status::newGood();
 
@@ -1077,7 +1078,7 @@ class EditPage {
 			$userid = $wgUser->getId();
 
 			# Suppress edit conflict with self, except for section edits where merging is required.
-			if ( $this->isConflict && $this->section == '' && $this->userWasLastToEdit( $userid, $this->edittime ) ) {
+			if ( $wgSuppressSameUserConflicts && $this->isConflict && $this->section == '' && $this->userWasLastToEdit( $userid, $this->edittime ) ) {
 				wfDebug( __METHOD__ . ": Suppressing edit conflict, same user.\n" );
 				$this->isConflict = false;
 			}
@@ -2323,14 +2324,9 @@ HTML
 		$currentText = $currentRevision->getText();
 
 		$result = '';
-		if ( wfMerge( $baseText, $editText, $currentText, $result ) ) {
-			$editText = $result;
-			wfProfileOut( __METHOD__ );
-			return true;
-		} else {
-			wfProfileOut( __METHOD__ );
-			return false;
-		}
+		$conflict = wfMerge( $baseText, $editText, $currentText, $editText );
+		wfProfileOut( __METHOD__ );
+		return $conflict;
 	}
 
 	/**
