@@ -293,12 +293,12 @@ class Language {
 	 */
 	function getNamespaces() {
 		if ( is_null( $this->namespaceNames ) ) {
-			global $wgMetaNamespace, $wgMetaNamespaceTalk, $wgExtraNamespaces;
+			global $wgMetaNamespace, $wgMetaNamespaceTalk;
 
 			$this->namespaceNames = self::$dataCache->getItem( $this->mCode, 'namespaceNames' );
 			$validNamespaces = MWNamespace::getCanonicalNamespaces();
 
-			$this->namespaceNames = $wgExtraNamespaces + $this->namespaceNames + $validNamespaces;
+			$this->namespaceNames = $this->namespaceNames + $validNamespaces;
 
 			$this->namespaceNames[NS_PROJECT] = $wgMetaNamespace;
 			if ( $wgMetaNamespaceTalk ) {
