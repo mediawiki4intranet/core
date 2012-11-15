@@ -304,6 +304,7 @@ class BitmapHandler extends TransformationalImageHandler {
 		#
 		# First find out what kind of file this is, and select the correct
 		# input routine for this.
+		global $wgGDAlwaysResample;
 
 		$typemap = array(
 			'image/gif' => array( 'imagecreatefromgif', 'palette', false, 'imagegif' ),
@@ -347,11 +348,11 @@ class BitmapHandler extends TransformationalImageHandler {
 
 		// Initialise the destination image to transparent instead of
 		// the default solid black, to support PNG and GIF transparency nicely
-		$background = imagecolorallocate( $dst_image, 0, 0, 0 );
+		$background = imagecolorallocatealpha( $dst_image, 0, 0, 0, 0x7f );
 		imagecolortransparent( $dst_image, $background );
 		imagealphablending( $dst_image, false );
 
-		if ( $colorStyle == 'palette' ) {
+		if ( $colorStyle == 'palette' && !$wgGDAlwaysResample ) {
 			// Don't resample for paletted GIF images.
 			// It may just uglify them, and completely breaks transparency.
 			imagecopyresized( $dst_image, $src_image,
