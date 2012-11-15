@@ -1213,12 +1213,14 @@ class PPFrame_Hash implements PPFrame {
 
 						$bits = $contextNode->splitHeading();
 						$titleText = $this->title->getPrefixedDBkey();
-						$this->parser->mHeadings[] = array( $titleText, $bits['i'] );
-						$serial = count( $this->parser->mHeadings ) - 1;
-						$marker = Parser::MARKER_PREFIX . "-h-$serial-" . Parser::MARKER_SUFFIX;
-						$s = substr( $s, 0, $bits['level'] ) . $marker . substr( $s, $bits['level'] );
-						$this->parser->mStripState->addGeneral( $marker, '' );
-						$out .= $s;
+						if ( $s != str_repeat( '=', $bits['level']*2 + 2 ) ) {
+							$this->parser->mHeadings[] = array( $titleText, $bits['i'] );
+							$serial = count( $this->parser->mHeadings ) - 1;
+							$marker = Parser::MARKER_PREFIX . "-h-$serial-" . Parser::MARKER_SUFFIX;
+							$s = substr( $s, 0, $bits['level'] ) . $marker . substr( $s, $bits['level'] );
+							$this->parser->mStripState->addGeneral( $marker, '' );
+							$out .= $s;
+						}
 					} else {
 						# Expand in virtual stack
 						$newIterator = $contextNode->getChildren();
