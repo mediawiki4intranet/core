@@ -77,7 +77,11 @@ class MediaWiki {
 		} elseif ( $title == '' && $this->getAction() != 'delete' ) {
 			$ret = Title::newMainPage();
 		} else {
-			$ret = Title::newFromURL( $title );
+			$ret = Title::newFromURL( $title, true );
+			if ( $ret->mBadtitleError ) {
+				// Return invalid titles as-is
+				return $ret;
+			}
 			// Alias NS_MEDIA page URLs to NS_FILE...we only use NS_MEDIA
 			// in wikitext links to tell Parser to make a direct file link
 			if ( !is_null( $ret ) && $ret->getNamespace() == NS_MEDIA ) {
@@ -157,6 +161,13 @@ class MediaWiki {
 			$this->context->setTitle( SpecialPage::getTitleFor( 'Badtitle' ) );
 			// Die now before we mess up $wgArticle and the skin stops working
 			throw new ErrorPageError( 'badtitle', 'badtitletext' );
+		// Show detailed errors for incorrect titles which have $mBadtitleError
+		} elseif ( !empty( $title->mBadtitleError ) ) {
+			$error = $title->mBadtitleError;
+			if ( !$error ) {
+				$error = array( 'badtitle' );
+			}
+			throw new ErrorPageError( $error[0], new Message( $error[0].'text', isset( $error[1] ) ? $error[1] : array() ) );
 		// If the user is not logged in, the Namespace:title of the article must be in
 		// the Read array in order for the user to see it. (We have to check here to
 		// catch special pages etc. We check again in Article::view())
