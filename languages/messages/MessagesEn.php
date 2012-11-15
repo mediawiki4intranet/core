@@ -128,6 +128,7 @@ $datePreferences = array(
 	'mdy',
 	'dmy',
 	'ymd',
+	'ymd hms',
 	'ISO 8601',
 );
 
@@ -174,6 +175,10 @@ $dateFormats = array(
 	'ISO 8601 time' => 'xnH:xni:xns',
 	'ISO 8601 date' => 'xnY-xnm-xnd',
 	'ISO 8601 both' => 'xnY-xnm-xnd"T"xnH:xni:xns',
+
+	'ymd hms time' => 'xnH:xni:xns',
+	'ymd hms date' => 'xnY-xnm-xnd',
+	'ymd hms both' => 'xnY-xnm-xnd" "xnH:xni:xns',
 );
 
 /**

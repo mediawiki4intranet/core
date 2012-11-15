@@ -1089,7 +1089,7 @@ class LoginForm extends SpecialPage {
 				$linkq .= '&uselang=' . $this->mLanguage;
 			}
 			$link = Html::element( 'a', array( 'href' => $titleObj->getLocalURL( $linkq ) ),
-				$this->msg( $linkmsg . 'link' )->text() ); # Calling either 'gotaccountlink' or 'nologinlink'
+				$this->msg( $linkmsg . 'link' )->parse() ); # Calling either 'gotaccountlink' or 'nologinlink'
 
 			$template->set( 'link', $this->msg( $linkmsg )->rawParams( $link )->parse() );
 		} else {
