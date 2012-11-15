@@ -263,4 +263,13 @@ class SpecialRecentChangesLinked extends SpecialRecentChanges {
 
 		return $this->rclTargetTitle;
 	}
+
+	public function getFeedQuery() {
+		$target = $this->getTargetTitle();
+		if( $target ) {
+			return array('target' => $target->getPrefixedDBkey());
+		} else {
+			return array();
+		}
+	}
 }

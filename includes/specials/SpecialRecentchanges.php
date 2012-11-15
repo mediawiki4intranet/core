@@ -198,11 +198,33 @@ class SpecialRecentChanges extends ChangesListSpecialPage {
 	public function doMainQuery( $conds, $opts ) {
 		$dbr = $this->getDB();
 		$user = $this->getUser();
+		global $wgAllowCategorizedRecentChanges;
 
 		$tables = array( 'recentchanges' );
-		$fields = RecentChange::selectFields();
 		$query_options = array();
 		$join_conds = array();
+
+		$fields = array( $dbr->tableName( 'recentchanges' ) . '.*' ); // all rc columns
+
+		$categories = trim( $opts['categories'], " \t\n\r\0\x0B|" );
+		// JOIN on categories
+		if( $wgAllowCategorizedRecentChanges && $categories &&
+		    ( $categories = preg_split( '/[\s\|]*\|[\s\|]*/', $categories ) ) ) {
+			foreach( $categories as &$cat ) {
+				$cat = str_replace( ' ', '_', $cat );
+			}
+			$tables[] = 'page';
+			$fields[] = 'page_latest';
+			$join_conds['page'] = array( 'INNER JOIN', 'rc_cur_id=page_id' );
+			if( $opts['categories_any'] ) {
+				$conds[] = "EXISTS (".$dbr->selectSQLText( 'categorylinks', '*', array( 'cl_from=page_id', 'cl_to' => $categories ) ).")";
+			} else {
+				foreach( $categories as $i => $cat ) {
+					$tables["cl$i"] = 'categorylinks';
+					$join_conds["cl$i"] = array( "INNER JOIN", array( "cl$i.cl_from=page_id", "cl$i.cl_to" => $cat ) );
+				}
+			}
+		}
 
 		// JOIN on watchlist for users
 		if ( $user->getId() && $user->isAllowed( 'viewmywatchlist' ) ) {
@@ -216,7 +238,7 @@ class SpecialRecentChanges extends ChangesListSpecialPage {
 			) );
 		}
 
-		if ( $user->isAllowed( 'rollback' ) ) {
+		if ( $user->isAllowed( 'rollback' ) && empty( $join_conds['page'] ) ) {
 			$tables[] = 'page';
 			$fields[] = 'page_latest';
 			$join_conds['page'] = array( 'LEFT JOIN', 'rc_cur_id=page_id' );
@@ -287,18 +309,8 @@ class SpecialRecentChanges extends ChangesListSpecialPage {
 	 *
 	 * @return array
 	 */
-	protected function getFeedQuery() {
-		$query = array_filter( $this->getOptions()->getAllValues(), function ( $value ) {
-			// API handles empty parameters in a different way
-			return $value !== '';
-		} );
-		$query['action'] = 'feedrecentchanges';
-		$feedLimit = $this->getConfig()->get( 'FeedLimit' );
-		if ( $query['limit'] > $feedLimit ) {
-			$query['limit'] = $feedLimit;
-		}
-
-		return $query;
+	private function getFeedQuery() {
+		return $this->getOptions()->getChangedValues();
 	}
 
 	/**
@@ -610,8 +622,10 @@ class SpecialRecentChanges extends ChangesListSpecialPage {
 
 		# Shortcut?
 		if ( !count( $articles ) || !count( $cats ) ) {
+			$rows = new FakeResultWrapper( array_values( $rowsarr ) );
 			return;
 		}
+		$rows = $rowsarr;
 
 		# Look up
 		$catFind = new CategoryFinder;
@@ -619,14 +633,14 @@ class SpecialRecentChanges extends ChangesListSpecialPage {
 		$match = $catFind->run();
 
 		# Filter
-		$newrows = array();
+		$rowsarr = array();
 		foreach ( $match as $id ) {
 			foreach ( $a2r[$id] as $rev ) {
 				$k = $rev;
-				$newrows[$k] = $rowsarr[$k];
+				$rowsarr[$k] = $rows[$k];
 			}
 		}
-		$rows = $newrows;
+		$rows = new FakeResultWrapper( array_values( $rowsarr ) );
 	}
 
 	/**
