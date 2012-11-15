@@ -25,6 +25,7 @@
  *
  * @ingroup FileRepo
  */
+
 abstract class File {
 	const DELETED_FILE = 1;
 	const DELETED_COMMENT = 2;
@@ -601,7 +602,7 @@ abstract class File {
 	 * @return string
 	 */
 	function thumbName( $params ) {
-		return $this->generateThumbName( $this->getName(), $params );
+		return $this->generateThumbName( $this->getPhys(), $params );
 	}
 
 	/**
@@ -872,12 +873,28 @@ abstract class File {
 	}
 
 	/**
+	 * Get the physical path of the file
+	 */
+	function getPhys() {
+		global $wgTransliterateUploadFilenames;
+		$name = $this->getName();
+		if ( $wgTransliterateUploadFilenames ) {
+			if ( preg_match( '/^(.*)\.(.*?)$/is', $name, $m ) ) {
+				$name = wfTransliterateRussian( $m[1] ) . '.' . $m[2];
+			} else {
+				$name = wfTransliterateRussian( $name );
+			}
+		}
+		return $name;
+	}
+
+	/**
 	 * Get the path of the file relative to the public zone root
 	 *
 	 * @return string
 	 */
 	function getRel() {
-		return $this->getHashPath() . $this->getName();
+		return $this->getHashPath() . $this->getPhys();
 	}
 
 	/**
@@ -886,7 +903,7 @@ abstract class File {
 	 * @return string
 	 */
 	function getUrlRel() {
-		return $this->getHashPath() . rawurlencode( $this->getName() );
+		return $this->getHashPath() . rawurlencode( $this->getPhys() );
 	}
 
 	/**

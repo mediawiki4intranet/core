@@ -678,11 +678,13 @@ abstract class UploadBase {
 			return $this->mTitle = null;
 		}
 		
+		/* 4intra.net patch (translit-upload-filenames)
 		// Windows may be broken with special characters, see bug XXX
 		if ( wfIsWindows() && !preg_match( '/^[\x0-\x7f]*$/', $nt->getText() ) ) {
 			$this->mTitleError = self::WINDOWS_NONASCII_FILENAME;
 			return $this->mTitle = null;
 		}
+		*/
 
 		# If there was more than one "extension", reassemble the base
 		# filename to prevent bogus complaints about length

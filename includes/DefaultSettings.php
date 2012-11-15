@@ -198,6 +198,12 @@ $wgUploadPath       = false;
 $wgUploadDirectory	= false;
 
 /**
+ * Set this to true to enable russian transliteration of uploaded file names.
+ * May be useful for Windows installations.
+ */
+$wgTransliterateUploadFilenames = false;
+
+/**
  * The URL path of the wiki logo. The logo size should be 135x135 pixels.
  * Defaults to "{$wgStylePath}/common/images/wiki.png".
  */
