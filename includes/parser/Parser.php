@@ -3445,6 +3445,10 @@ class Parser {
 			// </IntraACL>
 			if ( $title ) {
 				$titleText = $title->getPrefixedText();
+				// CustIS Bug 70192 - named section transclusion
+				if ( $frag = $title->getFragment() ) {
+					$titleText .= '#' . $frag;
+				}
 				# Check for language variants if the template is not found
 				if ( $this->getConverterLanguage()->hasVariants() && $title->getArticleID() == 0 ) {
 					$this->getConverterLanguage()->findVariantLink( $part1, $title, true );
@@ -3762,7 +3766,12 @@ class Parser {
 	 */
 	function getTemplateDom( $title ) {
 		$cacheTitle = $title;
+
 		$titleText = $title->getPrefixedDBkey();
+		// CustIS Bug 70192 - named section transclusion
+		if ( $frag = $title->getFragment() ) {
+			$titleText .= '#' . $frag;
+		}
 
 		if ( isset( $this->mTplRedirCache[$titleText] ) ) {
 			list( $ns, $dbk ) = $this->mTplRedirCache[$titleText];
@@ -3786,6 +3795,10 @@ class Parser {
 		}
 
 		$dom = $this->preprocessToDom( $text, self::PTD_FOR_INCLUSION );
+		// CustIS Bug 70192 - named section transclusion
+		if ( $frag ) {
+			$dom = $this->tryExtractNamedSection( $dom, $frag );
+		}
 		$this->mTplDomCache[ $titleText ] = array( $dom, $canRead );
 
 		if ( !$title->equals( $cacheTitle ) ) {
@@ -3794,6 +3807,71 @@ class Parser {
 		}
 
 		return array( $dom, $title, $canRead );
+	}
+
+	/**
+	 * CustIS Bug 70192 - try to extract a named section from DOM Document
+	 */
+	function tryExtractNamedSection( $dom, $frag ) {
+		$stack = array( array( $dom->node, 0 ) );
+		$foundlevel = false;
+		$newchild = NULL;
+		$newroot = NULL;
+		$content_started = false;
+		while( $stack ) {
+			$ptr = &$stack[ count( $stack ) - 1 ];
+			if ( $ptr[1] >= $ptr[0]->childNodes->length ) {
+				array_pop( $stack );
+				if ( $foundlevel ) {
+					$newchild = $newchild->parentNode;
+				}
+				continue;
+			}
+			$node = $ptr[0]->childNodes->item( $ptr[1] );
+			$ptr[1]++;
+			if ( !$foundlevel ) {
+				if ( $node->nodeName == 'h' ) {
+					$h = $node->nodeValue;
+					$l = $node->getAttribute( 'level' );
+					$h = trim( substr( $h, $l, -$l ) );
+					if ( $h == $frag ) {
+						$foundlevel = $l;
+						foreach ( $stack as $inside ) {
+							$el = $inside[0]->cloneNode();
+							if ( $newchild ) {
+								$newchild->addChild( $el );
+							} else {
+								$newroot = $el;
+							}
+							$newchild = $el;
+						}
+					}
+				} elseif ( $node->childNodes && $node->childNodes->length ) {
+					$stack[] = array( $node, 0 );
+				}
+			} else {
+				if ( $node->nodeName == 'h' && $node->getAttribute( 'level' ) <= $foundlevel ) {
+					break;
+				}
+				if ( !$content_started && $node->nodeType == XML_TEXT_NODE ) {
+					// left-trim included section
+					$v = ltrim( $node->nodeValue );
+					if ( !$v ) {
+						continue;
+					} else {
+						$newchild->appendChild( $newchild->ownerDocument->createTextNode( $v ) );
+					}
+				} else {
+					$newchild->appendChild( $node->cloneNode( true ) );
+				}
+				$content_started = true;
+			}
+		}
+		unset( $ptr );
+		if ( $newroot ) {
+			$dom = new PPNode_DOM( $newroot );
+		}
+		return $dom;
 	}
 
 	/**
