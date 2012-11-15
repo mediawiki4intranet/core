@@ -3161,6 +3161,7 @@ class Title {
 	 */
 	private function secureAndSplit() {
 		global $wgContLang, $wgLocalInterwiki;
+		global $wgMaxTitleBytes;
 		$this->mBadtitleError = null;
 
 		# Initialisation
@@ -3315,11 +3316,18 @@ class Title {
 			return false;
 		}
 
-		# Limit the size of titles to 255 bytes. This is typically the size of the
-		# underlying database field. We make an exception for special pages, which
-		# don't need to be stored in the database, and may edge over 255 bytes due
-		# to subpage syntax for long titles, e.g. [[Special:Block/Long name]]
-		$max = $this->mNamespace != NS_SPECIAL ? 255 : 512;
+		/**
+		 * Limit the size of titles to $wgMaxTitleBytes bytes.
+		 * It is set to 255 by default - this is typically the size of the underlying database field.
+		 * We make an exception for special pages, which don't need to be stored
+		 * in the database, and may edge over this limit due to subpage syntax
+		 * for long titles, e.g. [[Special:Block/Long name]]
+		 *
+		 * Really, even in MySQL you can use VARBINARY(767) for page.page_title.
+		 * 767 is the maximum size for an index key in InnoDB.
+		 * So the limit is made configurable in MediaWiki4Intranet.
+		 */
+		$max = $this->mNamespace != NS_SPECIAL ? $wgMaxTitleBytes : $wgMaxTitleBytes*2;
 		if ( strlen( $dbkey ) > $max ) {
 			$chop = substr( $dbkey, 0, $max+1 );
 			$chop = mb_substr( $chop, 0, mb_strlen( $chop ) - 1 );
