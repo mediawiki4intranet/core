@@ -2212,7 +2212,7 @@ $1',
 'upload-warning-msg'          => 'There was a problem with your upload from [$2]. You may return to the [[Special:Upload/stash/$1|upload form]] to correct this problem.',
 
 'upload-proto-error'        => 'Incorrect protocol',
-'upload-proto-error-text'   => 'Remote upload requires URLs beginning with <code>http://</code> or <code>ftp://</code>.',
+'upload-proto-error-text'   => 'Remote upload requires URLs beginning with <code>http://</code>, <code>https://</code> or <code>ftp://</code>.',
 'upload-file-error'         => 'Internal error',
 'upload-file-error-text'    => 'An internal error occurred when attempting to create a temporary file on the server.
 Please contact an [[Special:ListUsers/sysop|administrator]].',

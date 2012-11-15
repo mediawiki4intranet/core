@@ -1776,7 +1776,7 @@ $1',
 'upload-warning-msg'          => 'При загрузке с [$2] произошла ошибка. Для исправления ошибки вернитесь на [[Special:Upload/stash/$1|upload form]].',
 
 'upload-proto-error'        => 'Неправильный протокол',
-'upload-proto-error-text'   => 'Для удалённой загрузки требуется адрес, начинающийся с <code>http://</code> или <code>ftp://</code>.',
+'upload-proto-error-text'   => 'Для удалённой загрузки требуется адрес, начинающийся с <code>http://</code>, <code>https://</code> или <code>ftp://</code>.',
 'upload-file-error'         => 'Внутренняя ошибка',
 'upload-file-error-text'    => 'Внутренняя ошибка при попытке создать временный файл на сервере.
 Пожалуйста, обратитесь к [[Special:ListUsers/sysop|администратору]].',
