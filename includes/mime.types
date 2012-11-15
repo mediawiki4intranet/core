@@ -16,6 +16,8 @@ application/srgs+xml grxml
 application/vnd.mif mif
 application/vnd.ms-excel xls xlt xla
 application/vnd.ms-powerpoint ppt pot pps ppa
+application/vnd.ms-office vsd
+application/vnd.visio vsd
 application/vnd.wap.wbxml wbxml
 application/vnd.wap.wmlc wmlc
 application/vnd.wap.wmlscriptc wmlsc
