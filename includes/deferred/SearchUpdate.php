@@ -98,6 +98,7 @@ class SearchUpdate implements DeferrableUpdate {
 			}
 
 			$text = $search->getTextFromContent( $this->title, $this->content );
+			wfRunHooks( 'SearchUpdate', array( $this->id, $this->title->getNamespace(), $this->title, &$text, $this->content ) );
 			if ( !$search->textAlreadyUpdatedForIndex() ) {
 				$text = self::updateText( $text );
 			}

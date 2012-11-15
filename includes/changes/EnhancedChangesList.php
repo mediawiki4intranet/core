@@ -148,6 +148,7 @@ class EnhancedChangesList extends ChangesList {
 				$cacheEntry->mAttribs['rc_log_type']
 			)->getPrefixedDBkey();
 		}
+		wfRunHooks( 'EnhancedChangesListGroupBy', array( &$cacheEntry, &$title, &$cacheGroupingKey ) );
 
 		return $cacheGroupingKey;
 	}

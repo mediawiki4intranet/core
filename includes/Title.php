@@ -2103,12 +2103,6 @@ class Title {
 	 * @return array List of errors
 	 */
 	private function checkSpecialsAndNSPermissions( $action, $user, $errors, $rigor, $short ) {
-		# Only 'createaccount' can be performed on special pages,
-		# which don't actually exist in the DB.
-		if ( NS_SPECIAL == $this->mNamespace && $action !== 'createaccount' ) {
-			$errors[] = array( 'ns-specialprotected' );
-		}
-
 		# Check $wgNamespaceProtection for restricted namespaces
 		if ( $this->isNamespaceProtected( $user ) ) {
 			$ns = $this->mNamespace == NS_MAIN ?
@@ -4373,7 +4367,7 @@ class Title {
 		list( $name, $lang ) = MessageCache::singleton()->figureMessage(
 			$wgContLang->lcfirst( $this->getText() )
 		);
-		$message = wfMessage( $name )->inLanguage( $lang )->useDatabase( false );
+		$message = wfMessage( $name )->inLanguage( $lang );
 
 		if ( $message->exists() ) {
 			return $message->plain();

@@ -139,7 +139,7 @@ abstract class UploadBase {
 	}
 
 	// Upload handlers. Should probably just be a global.
-	private static $uploadHandlers = array( 'Stash', 'File', 'Url' );
+	public static $uploadHandlers = array( 'Stash', 'File', 'Url' );
 
 	/**
 	 * Create a form of UploadBase depending on wpSourceType and initializes it
