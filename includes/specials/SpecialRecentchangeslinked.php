@@ -240,7 +240,7 @@ class SpecialRecentchangeslinked extends SpecialRecentChanges {
 		}
 	}
 
-	public function getFeedQuery() {
+	public function getFeedQuery( $opts ) {
 		$target = $this->getTargetTitle();
 		if( $target ) {
 			return "target=" . urlencode( $target->getPrefixedDBkey() );
