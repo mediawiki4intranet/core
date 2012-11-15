@@ -59,7 +59,7 @@ class MailAddress {
 			if ( $this->name != '' && !wfIsWindows() ) {
 				global $wgEnotifUseRealName;
 				$name = ( $wgEnotifUseRealName && $this->realName ) ? $this->realName : $this->name;
-				$quoted = UserMailer::quotedPrintable( $name );
+				$quoted = UserMailer::mimeBase64( $name );
 				if ( strpos( $quoted, '.' ) !== false || strpos( $quoted, ',' ) !== false ) {
 					$quoted = '"' . $quoted . '"';
 				}
@@ -167,7 +167,7 @@ class UserMailer {
 			if ( $replyto ) {
 				$headers['Reply-To'] = $replyto->toString();
 			}
-			$headers['Subject'] = self::quotedPrintable( $subject );
+			$headers['Subject'] = self::mimeBase64( $subject );
 			$headers['Date'] = date( 'r' );
 			$headers['MIME-Version'] = '1.0';
 			$headers['Content-type'] = ( is_null( $contentType ) ?
@@ -232,7 +232,7 @@ class UserMailer {
 				$to = array( $to );
 			}
 			foreach ( $to as $recip ) {
-				$sent = mail( $recip->toString(), self::quotedPrintable( $subject ), $body, $headers, $wgAdditionalMailParams );
+				$sent = mail( $recip->toString(), self::mimeBase64( $subject ), $body, $headers, $wgAdditionalMailParams );
 			}
 
 			restore_error_handler();
@@ -269,6 +269,26 @@ class UserMailer {
 	public static function rfc822Phrase( $phrase ) {
 		$phrase = strtr( $phrase, array( "\r" => '', "\n" => '', '"' => '' ) );
 		return '"' . $phrase . '"';
+	}
+
+	/**
+	 * Converts a string into MIME-Base64 header encoding.
+	 */
+	public static function mimeBase64( $string, $charset = '' ) {
+		if( empty( $charset ) ) {
+			$charset = 'UTF-8';
+		}
+		if ( !function_exists( 'iconv_mime_encode' ) ) {
+			// Do not split and recode the string when iconv is unavailable
+			return '=?'.$charset.'?B?'.base64_encode( $string ).'?=';
+		}
+		return substr( iconv_mime_encode( '', $string, array(
+			'input-charset' => $charset,
+			'output-charset' => 'utf-8',
+			'line-length' => 76,
+			'line-break-chars' => "\n",
+			'scheme' => 'B'
+		) ), 2 );
 	}
 
 	/**
