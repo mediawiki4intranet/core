@@ -1552,7 +1552,7 @@ Link to namespaces
 !! input
 [[Talk:Parser testing]], [[Meta:Disclaimers]]
 !! result
-<p><a href="/index.php?title=Talk:Parser_testing&amp;action=edit&amp;redlink=1" class="new" title="Talk:Parser testing (page does not exist)">Talk:Parser testing</a>, <a href="/index.php?title=Meta:Disclaimers&amp;action=edit&amp;redlink=1" class="new" title="Meta:Disclaimers (page does not exist)">Meta:Disclaimers</a>
+<p><a href="/index.php?title=Talk:Parser_testing&amp;action=edit&amp;redlink=1&amp;section=new" class="new" title="Talk:Parser testing (page does not exist)">Talk:Parser testing</a>, <a href="/index.php?title=Meta:Disclaimers&amp;action=edit&amp;redlink=1" class="new" title="Meta:Disclaimers (page does not exist)">Meta:Disclaimers</a>
 </p>
 !! end
 

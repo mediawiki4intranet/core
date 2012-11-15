@@ -743,6 +743,9 @@ class SkinTemplate extends Skin {
 		if( $checkEdit && !$title->isKnown() ) {
 			$classes[] = 'new';
 			$query = 'action=edit&redlink=1';
+			if ( $title->isTalkPage() ) {
+				$query .= '&section=new';
+			}
 		}
 
 		// wfMessageFallback will nicely accept $message as an array of fallbacks
