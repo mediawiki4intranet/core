@@ -1041,6 +1041,7 @@ class ImageHistoryList {
 			$params = array(
 				'width' => '120',
 				'height' => '120',
+				'imagehistory' => true,
 			);
 			$timestamp = wfTimestamp( TS_MW, $file->getTimestamp() );
 

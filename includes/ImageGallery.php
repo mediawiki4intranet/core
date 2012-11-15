@@ -236,7 +236,8 @@ class ImageGallery {
 
 		$params = array(
 			'width' => $this->mWidths,
-			'height' => $this->mHeights
+			'height' => $this->mHeights,
+			'imagegallery' => true,
 		);
 		# Output each image...
 		foreach ( $this->mImages as $pair ) {
