@@ -276,7 +276,8 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	protected function getThumbParams( $img ) {
 		return array(
 			'width' => $this->mWidths,
-			'height' => $this->mHeights
+			'height' => $this->mHeights,
+			'imagegallery' => true,
 		);
 	}
 

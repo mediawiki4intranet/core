@@ -772,7 +772,7 @@ class SpecialSearch extends SpecialPage {
 					$this->msg( 'search-file-match' )->escaped() . "</span>";
 			}
 			if ( $img ) {
-				$thumb = $img->transform( array( 'width' => 120, 'height' => 120 ) );
+				$thumb = $img->transform( array( 'width' => 120, 'height' => 120, 'imagehistory' => true ) );
 				if ( $thumb ) {
 					$desc = $this->msg( 'parentheses' )->rawParams( $img->getShortDesc() )->escaped();
 					// Float doesn't seem to interact well with the bullets.

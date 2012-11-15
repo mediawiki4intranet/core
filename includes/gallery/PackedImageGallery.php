@@ -63,6 +63,7 @@ class PackedImageGallery extends TraditionalImageGallery {
 		return array(
 			'width' => $width * self::SCALE_FACTOR,
 			'height' => $this->mHeights * self::SCALE_FACTOR,
+			'imagegallery' => true,
 		);
 	}
 
