@@ -39,18 +39,26 @@ abstract class Skin extends ContextSource {
 
 			$skinDir = dir( $wgStyleDirectory );
 
-			# while code from www.php.net
 			while ( false !== ( $file = $skinDir->read() ) ) {
 				// Skip non-PHP files, hidden files, and '.dep' includes
-				$matches = array();
-
 				if ( preg_match( '/^([^.]*)\.php$/', $file, $matches ) ) {
 					$aSkin = $matches[1];
 					$wgValidSkinNames[strtolower( $aSkin )] = $aSkin;
+				} elseif ( is_dir( "$wgStyleDirectory/$file" ) ) {
+					$dirSkinName = strtolower( $file );
+					$subDir = dir( "$wgStyleDirectory/$file" );
+					while ( false !== ( $subfile = $subDir->read() ) ) {
+						if ( strtolower( $subfile ) === $dirSkinName.'.php' ) {
+							$wgValidSkinNames[$dirSkinName] = substr( $subfile, 0, -4 );
+						}
+					}
+					$subDir->close();
 				}
 			}
+
 			$skinDir->close();
 			$skinsInitialised = true;
+
 			wfProfileOut( __METHOD__ . '-init' );
 		}
 		return $wgValidSkinNames;
@@ -136,11 +144,17 @@ abstract class Skin extends ContextSource {
 
 			if ( !defined( 'MW_COMPILED' ) ) {
 				// Preload base classes to work around APC/PHP5 bug
-				$deps = "{$wgStyleDirectory}/{$skinName}.deps.php";
-				if ( file_exists( $deps ) ) {
+				// Allow placing skin template inside its assets directory
+				$dir = "$wgStyleDirectory/".strtolower( $skinName );
+				// stream_resolve_include_path() is used as a faster file_exists()
+				if ( !stream_resolve_include_path( "$dir/$skinName.php" ) ) {
+					$dir = $wgStyleDirectory;
+				}
+				$deps = "{$dir}/{$skinName}.deps.php";
+				if ( stream_resolve_include_path( $deps ) ) {
 					include_once( $deps );
 				}
-				require_once( "{$wgStyleDirectory}/{$skinName}.php" );
+				require_once( "{$dir}/{$skinName}.php" );
 			}
 
 			# Check if we got if not failback to default skin
@@ -152,7 +166,11 @@ abstract class Skin extends ContextSource {
 				wfDebug( "Skin class does not exist: $className\n" );
 				$className = 'SkinVector';
 				if ( !defined( 'MW_COMPILED' ) ) {
-					require_once( "{$wgStyleDirectory}/Vector.php" );
+					if ( stream_resolve_include_path( "{$wgStyleDirectory}/vector/Vector.php" ) ) {
+						require_once( "{$wgStyleDirectory}/vector/Vector.php" );
+					} else {
+						require_once( "{$wgStyleDirectory}/Vector.php" );
+					}
 				}
 			}
 		}
