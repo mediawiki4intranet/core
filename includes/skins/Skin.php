@@ -639,7 +639,7 @@ abstract class Skin extends ContextSource {
 		}
 
 		return $this->msg( 'retrievedfrom' )
-			->rawParams( '<a dir="ltr" href="' . $url . '">' . $url . '</a>' )
+			->rawParams( '<a dir="ltr" href="' . $url . '">' . urldecode( $url ) . '</a>' )
 			->parse();
 	}
 

@@ -126,6 +126,10 @@ pre, .mw-code {
 	*display: inline;
 }
 
+#content .plainlinks a.external.text:after, #content .plainlinks a.external.autonumber:after {
+	content: "";
+}
+
 #footer {
 	background: white;
 	color: black;
