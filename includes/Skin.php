@@ -751,7 +751,7 @@ abstract class Skin extends ContextSource {
 			// oldid not available for non existing pages
 			$url = htmlspecialchars( $this->getTitle()->getCanonicalURL() );
 		}
-		return wfMsg( 'retrievedfrom', '<a href="' . $url . '">' . $url . '</a>' );
+		return wfMsg( 'retrievedfrom', '<a href="' . $url . '">' . urldecode( $url ) . '</a>' );
 	}
 
 	function getUndeleteLink() {

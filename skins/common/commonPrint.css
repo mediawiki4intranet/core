@@ -206,6 +206,10 @@ a:link, a:visited {
 	content: " (" attr(href) ") ";
 }
 
+#content .plainlinks a.external.text:after, #content .plainlinks a.external.autonumber:after {
+	content: "";
+}
+
 #globalWrapper {
 	width: 100% !important;
 	min-width: 0 !important;
