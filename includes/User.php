@@ -2314,6 +2314,7 @@ class User {
 	 */
 	public function getGroups() {
 		$this->load();
+		$this->loadGroups();
 		return $this->mGroups;
 	}
 
