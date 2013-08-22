@@ -3129,6 +3129,9 @@ class Title {
 		$this->mLatestID = false;
 		$this->mContentModel = false;
 		$this->mEstimateRevisions = null;
+
+		// self::$titleCache may contain other instances of the same title
+		self::$titleCache = array();
 	}
 
 	/**
