@@ -2570,7 +2570,7 @@ class Title {
 	 */
 	public function resetArticleID( $newid ) {
 		$linkCache = LinkCache::singleton();
-		$linkCache->clearBadLink( $this->getPrefixedDBkey() );
+		$linkCache->clearLink( $this );
 
 		if ( $newid === false ) {
 			$this->mArticleID = -1;
@@ -2582,6 +2582,9 @@ class Title {
 		$this->mRedirect = null;
 		$this->mLength = -1;
 		$this->mLatestID = false;
+
+		// self::$titleCache may contain other instances of the same title
+		self::$titleCache = array();
 	}
 
 	/**
