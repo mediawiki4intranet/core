@@ -3349,6 +3349,10 @@ class Title {
 		$this->mPageLanguage = false;
 		$this->mDbPageLanguage = null;
 		$this->mIsBigDeletion = null;
+
+		// self::$titleCache may contain other instances of the same title
+		$titleCache = self::getTitleCache();
+		$titleCache->clear();
 	}
 
 	public static function clearCaches() {

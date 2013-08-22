@@ -3188,6 +3188,8 @@ class WikiPage implements Page, IDBAccessObject {
 		$title->touchLinks();
 		$title->purgeSquid();
 
+		$title->resetArticleId( 0 );
+
 		// File cache
 		HTMLFileCache::clearFileCache( $title );
 		InfoAction::invalidateCache( $title );
