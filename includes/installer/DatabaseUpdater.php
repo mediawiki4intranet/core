@@ -180,6 +180,19 @@ abstract class DatabaseUpdater {
 		return $this->extensionUpdates;
 	}
 
+	/**
+	 * Add a maintenance script to be run after the database updates are complete.
+	 *
+	 * Script should subclass LoggedUpdateMaintenance
+	 *
+	 * @since 1.19
+	 *
+	 * @param string $class Name of a Maintenance subclass
+	 */
+	public function addPostDatabaseUpdateMaintenance( $class ) {
+		$this->postDatabaseUpdateMaintenance[] = $class;
+	}
+
 	public function getPostDatabaseUpdateMaintenance() {
 		return $this->postDatabaseUpdateMaintenance;
 	}
