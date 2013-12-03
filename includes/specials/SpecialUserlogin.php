@@ -747,7 +747,11 @@ class LoginForm extends SpecialPage {
 			return self::SUCCESS;
 		}
 
-		$u = User::newFromName( $this->mUsername );
+		$u = null;
+		wfRunHooks( 'LoginGetUser', array( $this->mUsername, $this->mPassword, &$u ) );
+		if ( !$u ) {
+			$u = User::newFromName( $this->mUsername );
+		}
 		if ( $u === false ) {
 			return self::ILLEGAL;
 		}
