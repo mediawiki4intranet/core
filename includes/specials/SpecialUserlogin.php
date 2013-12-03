@@ -502,7 +502,11 @@ class LoginForm extends SpecialPage {
 
 		# TODO: Allow some magic here for invalid external names, e.g., let the
 		# user choose a different wiki name.
-		$u = User::newFromName( $this->mUsername );
+		$u = null;
+		wfRunHooks( 'LoginGetUser', array( $this->mUsername, $this->mPassword, &$u ) );
+		if ( !$u ) {
+			$u = User::newFromName( $this->mUsername );
+		}
 		if( !( $u instanceof User ) || !User::isUsableName( $u->getName() ) ) {
 			return self::ILLEGAL;
 		}
