@@ -16,7 +16,7 @@ application/srgs+xml grxml
 application/vnd.mif mif
 application/vnd.ms-excel xls xlt xla
 application/vnd.ms-powerpoint ppt pot pps ppa
-application/vnd.ms-office vsd ppt
+application/vnd.ms-office doc dot vsd mpp xls xlt xla ppt pot pps ppa
 application/vnd.visio vsd
 application/vnd.wap.wbxml wbxml
 application/vnd.wap.wmlc wmlc
@@ -41,6 +41,7 @@ application/x-javascript js
 application/json json
 application/x-koan skp skd skt skm
 application/x-latex latex
+application/x-msproject mpp
 application/x-netcdf nc cdf
 application/x-sh sh
 application/x-shar shar
