@@ -39,6 +39,7 @@ application/x-jar jar
 application/x-javascript js
 application/x-koan skp skd skt skm
 application/x-latex latex
+application/x-msproject mpp
 application/x-netcdf nc cdf
 application/x-sh sh
 application/x-shar shar
