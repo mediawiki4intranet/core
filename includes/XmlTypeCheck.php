@@ -48,6 +48,13 @@ class XmlTypeCheck {
 
 	/**
 	 * @param string $file filename
+	 * Name of file compression type (can be only 'gzip' by now),
+	 * or FALSE if the file is uncompressed.
+	 */
+	public $compressed = false;
+
+	/**
+	 * @param $file string filename
 	 * @param $filterCallback callable (optional)
 	 *        Function to call to do additional custom validity checks from the
 	 *        SAX element handler event. This gives you access to the element
@@ -92,6 +99,19 @@ class XmlTypeCheck {
 		if ( file_exists( $fname ) ) {
 			$file = fopen( $fname, "rb" );
 			if ( $file ) {
+				$gz = fread( $file, 2 );
+				if ( $gz == "\x1F\x8B" ) {
+					if ( function_exists( 'gzopen' ) ) {
+						fclose( $file );
+						$this->compressed = 'gzip';
+						$file = gzopen( $fname, "rb" );
+					} else {
+						return;
+					}
+				} else {
+					fseek( $file, 0, SEEK_SET );
+				}
+
 				do {
 					$chunk = fread( $file, 32768 );
 					$ret = xml_parse( $parser, $chunk, feof( $file ) );
