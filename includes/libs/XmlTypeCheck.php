@@ -52,6 +52,12 @@ class XmlTypeCheck {
 	public $rootElement = '';
 
 	/**
+	 * Name of file compression type (can be only 'gzip' by now),
+	 * or FALSE if the file is uncompressed.
+	 */
+	public $compressed = false;
+
+	/**
 	 * A stack of strings containing the data of each xml element as it's processed. Append
 	 * data to the top string of the stack, then pop off the string and process it when the
 	 * element is closed.
@@ -137,17 +143,38 @@ class XmlTypeCheck {
 	 * @param string $fname the filename
 	 */
 	private function validateFromInput( $xml, $isFile ) {
+		$oldDisable = libxml_disable_entity_loader( false );
 		$reader = new XMLReader();
 		if ( $isFile ) {
-			$s = $reader->open( $xml, null, LIBXML_NOERROR | LIBXML_NOWARNING );
+			$file = fopen( $xml, 'rb' );
+			$gz = fread( $file, 2 );
+			fclose( $file );
+			if ( $gz == "\x1F\x8B" ) {
+				if ( function_exists( 'gzopen' ) ) {
+					$this->compressed = 'gzip';
+				} else {
+					$this->wellFormed = false;
+					goto fin;
+				}
+			}
+			$s = $reader->open( "compress.zlib://$xml", null, LIBXML_NOERROR | LIBXML_NOWARNING );
 		} else {
+			if ( substr( $xml, 0, 2 ) == "\x1F\x8B" ) {
+				if ( function_exists( 'gzuncompress' ) ) {
+					$this->compressed = 'gzip';
+					$xml = gzuncompress( $xml );
+				} else {
+					$this->wellFormed = false;
+					goto fin;
+				}
+			}
 			$s = $reader->XML( $xml, null, LIBXML_NOERROR | LIBXML_NOWARNING );
 		}
 		if ( $s !== true ) {
 			// Couldn't open the XML
 			$this->wellFormed = false;
 		} else {
-			$oldDisable = libxml_disable_entity_loader( true );
+			libxml_disable_entity_loader( true );
 			$reader->setParserProperty( XMLReader::SUBST_ENTITIES, true );
 			try {
 				$this->validate( $reader );
@@ -160,8 +187,9 @@ class XmlTypeCheck {
 				throw $e;
 			}
 			$reader->close();
-			libxml_disable_entity_loader( $oldDisable );
 		}
+fin:
+		libxml_disable_entity_loader( $oldDisable );
 	}
 
 	private function readNext( XMLReader $reader ) {

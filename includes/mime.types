@@ -90,6 +90,7 @@ image/jp2 j2k jp2 jpg2
 image/jpeg jpeg jpg jpe
 image/png png apng
 image/svg+xml svg
+image/svg+xml+gzip svgz
 image/tiff tiff tif
 image/vnd.djvu djvu djv
 image/vnd.microsoft.icon ico

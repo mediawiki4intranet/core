@@ -889,6 +889,7 @@ $wgTrustedMediaFormats = array(
 	MEDIATYPE_AUDIO, //all audio formats
 	MEDIATYPE_VIDEO, //all plain video formats
 	"image/svg+xml", //svg (only needed if inline rendering of svg is not supported)
+	"image/svg+xml+gzip", //gzipped svg
 	"application/pdf", //PDF files
 	#"application/x-shockwave-flash", //flash/shockwave movie
 );
@@ -908,6 +909,7 @@ $wgMediaHandlers = array(
 	'image/x-xcf' => 'XCFHandler',
 	'image/svg+xml' => 'SvgHandler', // official
 	'image/svg' => 'SvgHandler', // compat
+	'image/svg+xml+gzip' => 'SvgHandler', // gzipped
 	'image/vnd.djvu' => 'DjVuHandler', // official
 	'image/x.djvu' => 'DjVuHandler', // compat
 	'image/x-djvu' => 'DjVuHandler', // compat
@@ -1257,6 +1259,11 @@ $wgXMLMimeTypes = array(
 	'http://www.lysator.liu.se/~alla/dia/:diagram' => 'application/x-dia-diagram',
 	'http://www.w3.org/1999/xhtml:html' => 'text/html', // application/xhtml+xml?
 	'html' => 'text/html', // application/xhtml+xml?
+);
+
+$wgCompressedXMLTypes = array(
+	'image/svg+xml' => 'image/svg+xml+gzip',
+	'application/x-dia-diagram' => 'application/x-dia-diagram',
 );
 
 /**
