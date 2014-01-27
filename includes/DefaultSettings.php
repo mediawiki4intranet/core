@@ -6047,6 +6047,11 @@ $wgUpgradeKey = false;
 $wgGitBin = '/usr/bin/git';
 
 /**
+ * Set this to true to enable display of git revisions in Special:Version
+ */
+$wgEnableGitInfo = false;
+
+/**
  * Map GIT repository URLs to viewer URLs to provide links in Special:Version
  *
  * Key is a pattern passed to preg_match() and preg_replace(),

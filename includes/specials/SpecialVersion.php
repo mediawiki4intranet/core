@@ -300,7 +300,10 @@ class SpecialVersion extends SpecialPage {
 	 * @return mixed
 	 */
 	public static function getVersionLinked() {
-		global $wgVersion;
+		global $wgVersion, $wgEnableGitInfo;
+		if ( !$wgEnableGitInfo ) {
+			return $wgVersion;
+		}
 
 		$gitVersion = self::getVersionLinkedGit();
 		if ( $gitVersion ) {
@@ -760,7 +763,8 @@ class SpecialVersion extends SpecialPage {
 			$canonicalVersion = $out->parseInline( $extension['version'] );
 		}
 
-		if ( isset( $extension['path'] ) ) {
+		global $wgEnableGitInfo;
+		if ( $wgEnableGitInfo && isset( $extension['path'] ) ) {
 			global $IP;
 			$extensionPath = dirname( $extension['path'] );
 			if ( $this->coreId == '' ) {
