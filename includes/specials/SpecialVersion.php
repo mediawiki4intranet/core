@@ -216,8 +216,11 @@ class SpecialVersion extends SpecialPage {
 	 * @return mixed
 	 */
 	public static function getVersionLinked() {
-		global $wgVersion;
+		global $wgVersion, $wgEnableGitInfo;
 		wfProfileIn( __METHOD__ );
+		if ( !$wgEnableGitInfo ) {
+			return $wgVersion;
+		}
 
 		$gitVersion = self::getVersionLinkedGit();
 		if( $gitVersion ) {
@@ -463,11 +466,13 @@ class SpecialVersion extends SpecialPage {
 	 * @return string
 	 */
 	function getCreditsForExtension( array $extension ) {
+		global $wgEnableGitInfo;
+
 		$name = isset( $extension['name'] ) ? $extension['name'] : '[no name]';
 
 		$vcsText = false;
 
-		if ( isset( $extension['path'] ) ) {
+		if ( $wgEnableGitInfo && isset( $extension['path'] ) ) {
 			$gitInfo = new GitInfo( dirname( $extension['path'] ) );
 			$gitHeadSHA1 = $gitInfo->getHeadSHA1();
 			if ( $gitHeadSHA1 !== false ) {
@@ -494,7 +499,10 @@ class SpecialVersion extends SpecialPage {
 			$mainLink = $name;
 		}
 
-		if ( isset( $extension['version'] ) ) {
+		if ( !$wgEnableGitInfo ) {
+			$versionText = '';
+			$vcsText = isset( $extension['version'] ) ? $extension['version'] : '';
+		} elseif ( isset( $extension['version'] ) ) {
 			$versionText = '<span class="mw-version-ext-version">' .
 				$this->msg( 'version-version', $extension['version'] )->text() .
 				'</span>';
