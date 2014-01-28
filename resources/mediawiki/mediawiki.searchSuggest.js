@@ -202,7 +202,7 @@
 						$input.closest( 'form' ).submit();
 					}
 				},
-				$region: $searchInput,
+				$region: $searchInput
 			} );
 			// In most skins (at least Monobook and Vector), the font-size is messed up in <body>.
 			// (they use 2 elements to get a sane font-height). So, instead of making exceptions for
