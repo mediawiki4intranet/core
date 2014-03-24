@@ -938,7 +938,7 @@ abstract class DatabaseBase implements DatabaseType {
 			static $cnt = 0;
 
 			$cnt++;
-			$sqlx = substr( $commentedSql, 0, 500 );
+			$sqlx = $commentedSql;
 			$sqlx = strtr( $sqlx, "\t\n", '  ' );
 
 			$master = $isMaster ? 'master' : 'slave';
