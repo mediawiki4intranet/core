@@ -40,6 +40,7 @@ class SkinCologneBlue extends SkinTemplate {
 	 */
 	function setupSkinUserCss( OutputPage $out ) {
 		$out->addModuleStyles( 'mediawiki.legacy.shared' );
+		$out->addModuleStyles( 'mediawiki.legacy.commonPrint' );
 		$out->addModuleStyles( 'mediawiki.legacy.oldshared' );
 		$out->addModuleStyles( 'skins.cologneblue' );
 	}
@@ -50,6 +51,10 @@ class SkinCologneBlue extends SkinTemplate {
 	 */
 	function formatLanguageName( $name ) {
 		return $name;
+	}
+
+	public function commonPrintStylesheet() {
+		return true;
 	}
 }
 
