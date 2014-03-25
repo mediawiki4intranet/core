@@ -3045,6 +3045,7 @@ $templates
 			'wgMonthNames' => $lang->getMonthNamesArray(),
 			'wgMonthNamesShort' => $lang->getMonthAbbreviationsArray(),
 			'wgRelevantPageName' => $relevantTitle->getPrefixedDBkey(),
+			'printable' => $this->isPrintable(),
 		);
 		if ( $user->isLoggedIn() ) {
 			$vars['wgUserId'] = $user->getId();

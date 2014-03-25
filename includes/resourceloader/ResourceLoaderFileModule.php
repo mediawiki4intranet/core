@@ -336,6 +336,7 @@ class ResourceLoaderFileModule extends ResourceLoaderModule {
 	public function getStyleURLsForDebug( ResourceLoaderContext $context ) {
 		$urls = array();
 		foreach ( $this->getStyleFiles( $context ) as $mediaType => $list ) {
+			$mediaType = OutputPage::transformCssMedia( $mediaType );
 			$urls[$mediaType] = array();
 			foreach ( $list as $file ) {
 				$urls[$mediaType][] = $this->getRemotePath( $file );
