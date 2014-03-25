@@ -1540,7 +1540,8 @@
 					reqBase = {
 						skin: mw.config.get( 'skin' ),
 						lang: mw.config.get( 'wgUserLanguage' ),
-						debug: mw.config.get( 'debug' )
+						debug: mw.config.get( 'debug' ),
+						printable: mw.config.get( 'printable' ) ? '1' : ''
 					};
 					// Split module batch by source and by group.
 					splits = {};
