@@ -3610,7 +3610,7 @@ class Parser {
 		} elseif ( $nowiki && ( $this->ot['html'] || $this->ot['pre'] ) ) {
 			# Escape nowiki-style return values
 			$text = wfEscapeWikiText( $text );
-		} elseif ( is_string( $text )
+		}/* elseif ( is_string( $text )
 			&& !$piece['lineStart']
 			&& preg_match( '/^(?:{\\||:|;|#|\*)/', $text ) )
 		{
@@ -3618,7 +3618,7 @@ class Parser {
 			# element, it should be treated as beginning a new line.
 			# This behavior is somewhat controversial.
 			$text = "\n" . $text;
-		}
+		}*/
 
 		if ( is_string( $text ) && !$this->incrementIncludeSize( 'post-expand', strlen( $text ) ) ) {
 			# Error, oversize inclusion
