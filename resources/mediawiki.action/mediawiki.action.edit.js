@@ -166,4 +166,11 @@
 		}
 	});
 
+	// Save modified content into wpBaseText after submitting edit form,
+	// to suppress the conflict if the user clicks "Back" and edits again
+	$( window ).on( 'unload', function() {
+		document.getElementById( 'wpBaseText' ).value = document.getElementById( 'wpTextbox1' ).value;
+		return true;
+	} );
+
 }( mediaWiki, jQuery ) );

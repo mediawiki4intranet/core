@@ -1559,11 +1559,6 @@ class EditPage {
 						$this->isConflict = false;
 						wfDebug( __METHOD__ . ": conflict suppressed; new section\n" );
 					}
-				} elseif ( $this->section == '' && Revision::userWasLastToEdit( DB_MASTER, $this->mTitle->getArticleID(),
-							$wgUser->getId(), $this->edittime ) ) {
-					# Suppress edit conflict with self, except for section edits where merging is required.
-					wfDebug( __METHOD__ . ": Suppressing edit conflict, same user.\n" );
-					$this->isConflict = false;
 				}
 			}
 
@@ -1585,6 +1580,18 @@ class EditPage {
 			} else {
 				wfDebug( __METHOD__ . ": getting section '{$this->section}'\n" );
 				$content = $this->mArticle->replaceSectionContent( $this->section, $textbox_content, $sectionTitle );
+			}
+
+			// Check if this is the same edit form submitted twice after going Back in browser
+			$base = rtrim( $wgRequest->getText( 'wpBaseText' ) );
+			if ( $base !== '' ) {
+				$base = $this->toEditContent( $base );
+				$base = ContentHandler::getContentText( $this->mArticle->replaceSectionContent( $this->section, $base, $sectionTitle ) );
+				$cur = $this->mArticle->getContent();
+				if ( $base === $cur && Revision::userWasLastToEdit( DB_MASTER, $this->mTitle->getArticleID(), $wgUser->getId(), $this->edittime ) ) {
+					$this->isConflict = false;
+					$content = $this->mArticle->replaceSectionContent( $this->section, $textbox_content, $sectionTitle );
+				}
 			}
 
 			if ( is_null( $content ) ) {
@@ -2221,6 +2228,7 @@ class EditPage {
 			$this->showContentForm();
 		}
 
+		$wgOut->addHTML( Html::hidden( 'wpBaseText', '', array( 'id' => 'wpBaseText' ) ) );
 		$wgOut->addHTML( $this->editFormTextAfterContent );
 
 		$this->showStandardInputs();
