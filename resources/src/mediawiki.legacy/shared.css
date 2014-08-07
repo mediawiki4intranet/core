@@ -11,6 +11,18 @@
 
 /* GENERAL CLASSES FOR DIRECTIONALITY SUPPORT */
 
+input {
+	font-family: sans-serif;
+	font-size: 1em;
+}
+
+textarea {
+	/* override Chrome's -webkit-small-control that doesn't allow to configure monospace font size
+	   + fix broken browser monospace font size handling */
+	font-family: monospace, monospace;
+	font-size: 1em;
+}
+
 /**
  * These classes should be used for text depending on the content direction.
  * Content stuff like editsection, ul/ol and TOC depend on this.
