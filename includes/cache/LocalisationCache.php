@@ -202,6 +202,9 @@ class LocalisationCache {
 		if ( !empty( $conf['storeDirectory'] ) ) {
 			$storeConf['directory'] = $conf['storeDirectory'];
 		}
+		if ( !empty( $conf['storeCachePrefix'] ) ) {
+			$storeConf['cachePrefix'] = $conf['storeCachePrefix'];
+		}
 
 		$this->store = new $storeClass( $storeConf );
 		foreach ( array( 'manualRecache', 'forceRecache' ) as $var ) {
@@ -948,18 +951,26 @@ class LCStore_Accel implements LCStore {
 	var $currentLang;
 	var $keys;
 
-	public function __construct() {
+	public function __construct( $conf ) {
+		global $wgCachePrefix;
 		$this->cache = wfGetCache( CACHE_ACCEL );
+		if ( isset( $conf['cachePrefix'] ) ) {
+			$this->cachePrefix = $conf['cachePrefix'];
+		} elseif ( $wgCachePrefix !== false ) {
+			$this->cachePrefix = $wgCachePrefix;
+		} else {
+			$this->cachePrefix = wfWikiID();
+		}
 	}
 
 	public function get( $code, $key ) {
-		$k = wfMemcKey( 'l10n', $code, 'k', $key );
+		$k = $this->cachePrefix . ":l10n:$code:k:$key";
 		$r = $this->cache->get( $k );
 		return $r === false ? null : $r;
 	}
 
 	public function startWrite( $code ) {
-		$k = wfMemcKey( 'l10n', $code, 'l' );
+		$k = $this->cachePrefix . ":l10n:$code:l";
 		$keys = $this->cache->get( $k );
 		if ( $keys ) {
 			foreach ( $keys as $k ) {
@@ -972,7 +983,7 @@ class LCStore_Accel implements LCStore {
 
 	public function finishWrite() {
 		if ( $this->currentLang ) {
-			$k = wfMemcKey( 'l10n', $this->currentLang, 'l' );
+			$k = $this->cachePrefix . ":l10n:".$this->currentLang.":l";
 			$this->cache->set( $k, array_keys( $this->keys ) );
 		}
 		$this->currentLang = null;
@@ -981,7 +992,7 @@ class LCStore_Accel implements LCStore {
 
 	public function set( $key, $value ) {
 		if ( $this->currentLang ) {
-			$k = wfMemcKey( 'l10n', $this->currentLang, 'k', $key );
+			$k = $this->cachePrefix . ":l10n:".$this->currentLang.":k:$key";
 			$this->keys[$k] = true;
 			$this->cache->set( $k, $value );
 		}

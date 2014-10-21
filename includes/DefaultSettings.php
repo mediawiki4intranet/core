@@ -1972,6 +1972,7 @@ $wgLocalisationCacheConf = array(
 	'class' => 'LocalisationCache',
 	'store' => 'detect',
 	'storeClass' => false,
+	'storeCacheKey' => false,
 	'storeDirectory' => false,
 	'manualRecache' => false,
 );
