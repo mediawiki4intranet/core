@@ -44,7 +44,7 @@ class UnwatchedpagesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'page', 'watchlist' ),
 			'fields' => array(
 				'namespace' => 'page_namespace',
@@ -60,6 +60,10 @@ class UnwatchedpagesPage extends QueryPage {
 				'LEFT JOIN', array( 'wl_title = page_title',
 					'wl_namespace = page_namespace' ) ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function sortDescending() {

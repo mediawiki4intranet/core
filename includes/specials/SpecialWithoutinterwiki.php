@@ -100,7 +100,9 @@ class WithoutInterwikiPage extends PageQueryPage {
 			$dbr = wfGetDB( DB_SLAVE );
 			$query['conds'][] = 'page_title ' . $dbr->buildLike( $this->prefix, $dbr->anyString() );
 		}
-
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
 		return $query;
 	}
 

@@ -1301,7 +1301,9 @@ class LoginForm extends SpecialPage {
 		Hooks::run( 'PostLoginRedirect', array( &$returnTo, &$returnToQuery, &$type ) );
 
 		$returnToTitle = Title::newFromText( $returnTo );
-		if ( !$returnToTitle ) {
+		// <IntraACL>
+		if ( !$returnToTitle || !$returnToTitle->userCan( 'read' ) ) {
+		// </IntraACL>
 			$returnToTitle = Title::newMainPage();
 		}
 

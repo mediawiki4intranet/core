@@ -264,6 +264,9 @@ class EmailNotification {
 						&& $watchingUser->isEmailConfirmed()
 						&& $watchingUser->getID() != $userTalkId
 						&& !( $wgBlockDisablesLogin && $watchingUser->isBlocked() )
+// <IntraACL>
+						&& !$title->getUserPermissionsErrors( 'read', $watchingUser ) // Check page read access
+// </IntraACL>
 					) {
 						if ( Hooks::run( 'SendWatchlistEmailNotification', array( $watchingUser, $title, $this ) ) ) {
 							$this->compose( $watchingUser, self::WATCHLIST );
@@ -280,7 +283,12 @@ class EmailNotification {
 				continue;
 			}
 			$user = User::newFromName( $name );
-			$this->compose( $user, self::ALL_CHANGES );
+// <IntraACL>
+			if ( !$title->getUserPermissionsErrors( 'read', $user ) ) {
+				// Check page read access
+				$this->compose( $user, self::ALL_CHANGES );
+			}
+// </IntraACL>
 		}
 
 		$this->sendMails();

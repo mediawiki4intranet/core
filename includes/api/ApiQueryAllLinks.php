@@ -206,8 +206,13 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				if ( $fld_ids ) {
 					$vals['fromid'] = intval( $row->pl_from );
 				}
+				$title = Title::makeTitle( $namespace, $row->pl_title );
+				// <IntraACL>
+				if ( !$title->userCan( 'read' ) ) {
+					continue;
+				}
+				// </IntraACL>
 				if ( $fld_title ) {
-					$title = Title::makeTitle( $namespace, $row->pl_title );
 					ApiQueryBase::addTitleInfo( $vals, $title );
 				}
 				foreach ( $this->props as $name => $field ) {

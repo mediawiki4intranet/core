@@ -68,7 +68,7 @@ class ApiImageRotate extends ApiBase {
 		self::addValues( $result, $pageSet->getMissingRevisionIDs(), 'missing', 'revid' );
 		self::addValues( $result, $pageSet->getInterwikiTitlesAsResult() );
 
-		foreach ( $pageSet->getTitles() as $title ) {
+		foreach ( $pageSet->getGoodTitles() as $title ) {
 			$r = array();
 			$r['id'] = $title->getArticleID();
 			ApiQueryBase::addTitleInfo( $r, $title );

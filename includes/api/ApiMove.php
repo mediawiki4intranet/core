@@ -50,13 +50,17 @@ class ApiMove extends ApiBase {
 			}
 		}
 
-		if ( !$fromTitle->exists() ) {
+		// <IntraACL>
+		if ( !$fromTitle->exists() || !$fromTitle->userCan( 'read' ) ) {
+		// </IntraACL>
 			$this->dieUsageMsg( 'notanarticle' );
 		}
 		$fromTalk = $fromTitle->getTalkPage();
 
 		$toTitle = Title::newFromText( $params['to'] );
-		if ( !$toTitle || $toTitle->isExternal() ) {
+		// <IntraACL>
+		if ( !$toTitle || $toTitle->isExternal() || !$toTitle->userCan( 'read' ) ) {
+		// </IntraACL>
 			$this->dieUsageMsg( array( 'invalidtitle', $params['to'] ) );
 		}
 		$toTalk = $toTitle->getTalkPage();

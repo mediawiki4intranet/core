@@ -4086,7 +4086,17 @@ function wfIsBadImage( $name, $contextTitle = false, $blacklist = null ) {
 	static $badImageCache = null; // based on bad_image_list msg
 
 	# Handle redirects
+// <IntraACL>
+	if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+		$hacl = haclfDisableTitlePatch();
+	}
+// </IntraACL>
 	$redirectTitle = RepoGroup::singleton()->checkRedirect( Title::makeTitle( NS_FILE, $name ) );
+// <IntraACL>
+	if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+		haclfRestoreTitlePatch( $hacl );
+	}
+// </IntraACL>
 	if ( $redirectTitle ) {
 		$name = $redirectTitle->getDBkey();
 	}

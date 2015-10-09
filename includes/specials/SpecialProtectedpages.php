@@ -518,7 +518,7 @@ class ProtectedPagesPager extends TablePager {
 			$conds[] = 'page_namespace=' . $this->mDb->addQuotes( $this->namespace );
 		}
 
-		return array(
+		$query = array(
 			'tables' => array( 'page', 'page_restrictions', 'log_search', 'logging' ),
 			'fields' => array(
 				'pr_id',
@@ -548,6 +548,10 @@ class ProtectedPagesPager extends TablePager {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	public function getTableClass() {

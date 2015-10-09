@@ -219,6 +219,11 @@ class SpecialAllPages extends IncludableSpecialPage {
 				$out = Xml::openElement( 'ul', array( 'class' => 'mw-allpages-chunk' ) );
 				while ( ( $n < $this->maxPerPage ) && ( $s = $res->fetchObject() ) ) {
 					$t = Title::newFromRow( $s );
+					// <IntraACL>
+					if ( $t && !$t->userCan( 'read' ) ) {
+						continue;
+					}
+					// </IntraACL>
 					if ( $t ) {
 						$out .= '<li' .
 							( $s->page_is_redirect ? ' class="allpagesredirect"' : '' ) .

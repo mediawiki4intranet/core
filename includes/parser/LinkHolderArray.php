@@ -80,6 +80,12 @@ class LinkHolderArray {
 	 * Recreate the Title objects
 	 */
 	public function __wakeup() {
+// <IntraACL>
+        // LinkHolderArray skips permission checks so page links in parsed content are never cloaked
+        if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+                $etc = haclfDisableTitlePatch();
+        }
+// </IntraACL>
 		foreach ( $this->internals as &$nsLinks ) {
 			foreach ( $nsLinks as &$entry ) {
 				$entry['title'] = Title::newFromText( $entry['pdbk'] );
@@ -92,6 +98,11 @@ class LinkHolderArray {
 			$entry['title'] = Title::newFromText( $entry['pdbk'] );
 		}
 		unset( $entry );
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			haclfRestoreTitlePatch( $etc );
+		}
+		// </IntraACL>
 	}
 
 	/**
@@ -288,6 +299,13 @@ class LinkHolderArray {
 		$linkCache = LinkCache::singleton();
 		$output = $this->parent->getOutput();
 
+		// <IntraACL>
+		// LinkHolderArray skips permission checks so page links in parsed content are never cloaked
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			$etc = haclfDisableTitlePatch();
+		}
+		// </IntraACL>
+
 		$dbr = wfGetDB( DB_SLAVE );
 		$threshold = $this->parent->getOptions()->getStubThreshold();
 
@@ -423,6 +441,11 @@ class LinkHolderArray {
 			$text
 		);
 
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			haclfRestoreTitlePatch( $etc );
+		}
+		// </IntraACL>
 	}
 
 	/**

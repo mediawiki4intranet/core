@@ -722,6 +722,11 @@ class ApiPageSet extends ApiBase {
 	public function processDbRow( $row ) {
 		// Store Title object in various data structures
 		$title = Title::newFromRow( $row );
+		// <IntraACL>
+		if ( !$title->userCan( 'read' ) ) {
+			return false;
+		}
+		// </IntraACL>
 
 		$pageId = intval( $row->page_id );
 		$this->mAllPages[$row->page_namespace][$row->page_title] = $pageId;
@@ -738,6 +743,7 @@ class ApiPageSet extends ApiBase {
 		foreach ( $this->mRequestedPageFields as $fieldName => &$fieldValues ) {
 			$fieldValues[$pageId] = $row->$fieldName;
 		}
+		return true;
 	}
 
 	/**
@@ -837,17 +843,17 @@ class ApiPageSet extends ApiBase {
 			foreach ( $res as $row ) {
 				$pageId = intval( $row->page_id );
 
+				// Store any extra fields requested by modules
+				$readable = $this->processDbRow( $row );
+
 				// Remove found page from the list of remaining items
-				if ( isset( $remaining ) ) {
+				if ( $readable && isset( $remaining ) ) {
 					if ( $processTitles ) {
 						unset( $remaining[$row->page_namespace][$row->page_title] );
 					} else {
 						unset( $remaining[$pageId] );
 					}
 				}
-
-				// Store any extra fields requested by modules
-				$this->processDbRow( $row );
 
 				// Need gender information
 				if ( MWNamespace::hasGenderDistinction( $row->page_namespace ) ) {
@@ -920,12 +926,10 @@ class ApiPageSet extends ApiBase {
 				$pageid = intval( $row->rev_page );
 				$this->mGoodRevIDs[$revid] = $pageid;
 				$this->mLiveRevIDs[$revid] = $pageid;
-				$pageids[$pageid] = '';
+				$pageids[$pageid][] = $revid;
 				unset( $remaining[$revid] );
 			}
 		}
-
-		$this->mMissingRevIDs = array_keys( $remaining );
 
 		// Populate all the page information
 		$this->initFromPageIds( array_keys( $pageids ) );
@@ -972,6 +976,20 @@ class ApiPageSet extends ApiBase {
 
 			$this->mMissingRevIDs = array_keys( $remaining );
 		}
+		// <IntraACL>
+		foreach ( $pageids as $pageid => $revids ) {
+			if ( !isset( $this->mGoodTitles[$pageid] ) ) {
+				// Page is unreadable, remove revisions from good list
+				foreach ( $revids as $revid ) {
+					unset( $this->mGoodRevIDs[$revid] );
+					unset( $this->mLiveRevIDs[$revid] );
+					$remaining[$revid] = true;
+				}
+			}
+		}
+		// </IntraACL>
+
+		$this->mMissingRevIDs = array_keys( $remaining );
 	}
 
 	/**
@@ -1042,6 +1060,11 @@ class ApiPageSet extends ApiBase {
 			);
 			$this->mResolvedRedirectTitles[$from] = $this->mPendingRedirectIDs[$rdfrom];
 			unset( $this->mPendingRedirectIDs[$rdfrom] );
+			// <IntraACL>
+			if ( !$to->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( $to->isExternal() ) {
 				$this->mInterwikiTitles[$to->getPrefixedText()] = $to->getInterwiki();
 			} elseif ( !isset( $this->mAllPages[$row->rd_namespace][$row->rd_title] ) ) {
@@ -1105,6 +1128,11 @@ class ApiPageSet extends ApiBase {
 			if ( is_string( $title ) ) {
 				try {
 					$titleObj = Title::newFromTextThrow( $title, $this->mDefaultNamespace );
+					// <IntraACL>
+					if ( !$titleObj->userCan( 'read' ) ) {
+						throw new MalformedTitleException( 'title-permission-denied', $title );
+					}
+					// </IntraACL>
 				} catch ( MalformedTitleException $ex ) {
 					// Handle invalid titles gracefully
 					$this->mAllPages[0][$title] = $this->mFakePageId;

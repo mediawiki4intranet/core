@@ -112,6 +112,11 @@ class ApiQueryProtectedTitles extends ApiQueryGeneratorBase {
 
 			$title = Title::makeTitle( $row->pt_namespace, $row->pt_title );
 			if ( is_null( $resultPageSet ) ) {
+				// <IntraACL>
+				if ( !$title->userCan( 'read' ) ) {
+					continue;
+				}
+				// </IntraACL>
 				$vals = array();
 				ApiQueryBase::addTitleInfo( $vals, $title );
 				if ( isset( $prop['timestamp'] ) ) {

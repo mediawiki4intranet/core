@@ -258,6 +258,11 @@ class CategoryViewer extends ContextSource {
 	 * @param bool $isRedirect
 	 */
 	function addPage( $title, $sortkey, $pageLength, $isRedirect = false ) {
+		// <IntraACL>
+		if ( !$title->userCan( 'read' ) ) {
+			return;
+		}
+		// </IntraACL>
 		global $wgContLang;
 
 		$this->articles[] = $this->generateLink( 'page', $title, $isRedirect );

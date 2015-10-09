@@ -105,8 +105,13 @@ class ApiQueryPagesWithProp extends ApiQueryGeneratorBase {
 				if ( $fld_ids ) {
 					$vals['pageid'] = (int)$row->page_id;
 				}
+				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+				// <IntraACL>
+				if ( !$title->userCan( 'read' ) ) {
+					continue;
+				}
+				// </IntraACL>
 				if ( $fld_title ) {
-					$title = Title::makeTitle( $row->page_namespace, $row->page_title );
 					ApiQueryBase::addTitleInfo( $vals, $title );
 				}
 				if ( $fld_value ) {

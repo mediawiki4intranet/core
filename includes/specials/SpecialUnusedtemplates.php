@@ -47,7 +47,7 @@ class UnusedtemplatesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'page', 'templatelinks' ),
 			'fields' => array(
 				'namespace' => 'page_namespace',
@@ -63,6 +63,10 @@ class UnusedtemplatesPage extends QueryPage {
 				'LEFT JOIN', array( 'tl_title = page_title',
 					'tl_namespace = page_namespace' ) ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

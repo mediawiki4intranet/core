@@ -110,9 +110,11 @@ class SpecialPageLanguage extends FormSpecialPage {
 		$title = Title::newFromText( $data['pagename'] );
 
 		// Check if title is valid
-		if ( !$title ) {
+		// <IntraACL>
+		if ( !$title || !$title->userCan( 'edit' ) ) {
 			return false;
 		}
+		// </IntraACL>
 
 		// Get the default language for the wiki
 		// Returns the default since the page is not loaded from DB

@@ -307,6 +307,11 @@ class LogEventsList extends ContextSource {
 	 */
 	public function logLine( $row ) {
 		$entry = DatabaseLogEntry::newFromRow( $row );
+		// <IntraACL>
+		if ( !$entry->getTarget()->userCan( 'read' ) ) {
+			return '';
+		}
+		// </IntraACL>
 		$formatter = LogFormatter::newFromEntry( $entry );
 		$formatter->setContext( $this->getContext() );
 		$formatter->setShowUserToolLinks( !( $this->flags & self::NO_EXTRA_USER_LINKS ) );

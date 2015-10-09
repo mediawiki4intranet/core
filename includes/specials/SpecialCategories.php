@@ -125,12 +125,16 @@ class CategoryPager extends AlphabeticPager {
 	}
 
 	function getQueryInfo() {
-		return array(
+		$info = array(
 			'tables' => array( 'category' ),
 			'fields' => array( 'cat_title', 'cat_pages' ),
 			'conds' => array( 'cat_pages > 0' ),
-			'options' => array( 'USE INDEX' => 'cat_title' ),
+			'options' => array( 'USE INDEX' => array( 'category' => 'cat_title' ) ),
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$info, 'page', array( 'page_title=cat_title' ), NS_CATEGORY ) );
+		// </IntraACL>
+		return $info;
 	}
 
 	function getIndexField() {

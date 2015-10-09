@@ -43,7 +43,7 @@ class MostcategoriesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'categorylinks', 'page' ),
 			'fields' => array(
 				'namespace' => 'page_namespace',
@@ -62,6 +62,10 @@ class MostcategoriesPage extends QueryPage {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

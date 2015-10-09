@@ -356,6 +356,11 @@ class SpecialWatchlist extends ChangesListSpecialPage {
 		foreach ( $rows as $obj ) {
 			# Make RC entry
 			$rc = RecentChange::newFromRow( $obj );
+			// <IntraACL>
+			if ( !$rc->getTitle()->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			$rc->counter = $counter++;
 
 			if ( $this->getConfig()->get( 'ShowUpdatedMarker' ) ) {

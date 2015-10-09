@@ -46,7 +46,7 @@ class ListredirectsPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'p1' => 'page', 'redirect', 'p2' => 'page' ),
 			'fields' => array( 'namespace' => 'p1.page_namespace',
 				'title' => 'p1.page_title',
@@ -63,6 +63,10 @@ class ListredirectsPage extends QueryPage {
 					'p2.page_namespace=rd_namespace',
 					'p2.page_title=rd_title' ) ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'p1', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {
@@ -123,6 +127,11 @@ class ListredirectsPage extends QueryPage {
 		# Find out where the redirect leads
 		$target = $this->getRedirectTarget( $result );
 		if ( $target ) {
+			// <IntraACL>
+			if ( !$target->userCan( 'read' ) ) {
+				return '';
+			}
+			// </IntraACL>
 			# Make a link to the destination page
 			$lang = $this->getLanguage();
 			$arr = $lang->getArrow() . $lang->getDirMark();

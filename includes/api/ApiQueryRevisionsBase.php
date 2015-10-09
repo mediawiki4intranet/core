@@ -158,6 +158,11 @@ abstract class ApiQueryRevisionsBase extends ApiQueryGeneratorBase {
 	 */
 	protected function extractRevisionInfo( Revision $revision, $row ) {
 		$title = $revision->getTitle();
+		// <IntraACL>
+		if ( !$title->userCan( 'read' ) ) {
+			return NULL;
+		}
+		// </IntraACL>
 		$user = $this->getUser();
 		$vals = array();
 		$anyHidden = false;

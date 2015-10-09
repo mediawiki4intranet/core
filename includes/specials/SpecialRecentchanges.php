@@ -334,10 +334,15 @@ class SpecialRecentChanges extends ChangesListSpecialPage {
 
 		$rclistOutput = $list->beginRecentChangesList();
 		foreach ( $rows as $obj ) {
+			// <IntraACL>
+			$rc = RecentChange::newFromRow( $obj );
+			if ( !$rc->getTitle()->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( $limit == 0 ) {
 				break;
 			}
-			$rc = RecentChange::newFromRow( $obj );
 			$rc->counter = $counter++;
 			# Check if the page has been updated since the last visit
 			if ( $this->getConfig()->get( 'ShowUpdatedMarker' )

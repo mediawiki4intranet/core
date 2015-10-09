@@ -66,6 +66,11 @@ class ApiExpandTemplates extends ApiBase {
 				$this->dieUsageMsg( array( 'invalidtitle', $params['title'] ) );
 			}
 		}
+		// <IntraACL>
+		if ( !$title_obj->userCan( 'read' ) ) {
+			$this->dieUsageMsg( array( 'invalidtitle', $params['title'] ) );
+		}
+		// </IntraACL>
 
 		$result = $this->getResult();
 

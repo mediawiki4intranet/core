@@ -38,7 +38,7 @@ class ShortPagesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'page' ),
 			'fields' => array(
 				'namespace' => 'page_namespace',
@@ -51,6 +51,10 @@ class ShortPagesPage extends QueryPage {
 			),
 			'options' => array( 'USE INDEX' => 'page_redirect_namespace_len' )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {

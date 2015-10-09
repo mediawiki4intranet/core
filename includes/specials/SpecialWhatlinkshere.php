@@ -289,7 +289,11 @@ class SpecialWhatLinksHere extends IncludableSpecialPage {
 		$out->addHTML( $this->listStart( $level ) );
 		foreach ( $rows as $row ) {
 			$nt = Title::makeTitle( $row->page_namespace, $row->page_title );
-
+			// <IntraACL>
+			if ( !$nt->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( $row->rd_from && $level < 2 ) {
 				$out->addHTML( $this->listItem( $row, $nt, $target, true ) );
 				$this->showIndirectLinks(

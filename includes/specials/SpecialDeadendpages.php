@@ -57,7 +57,7 @@ class DeadendPagesPage extends PageQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'page', 'pagelinks' ),
 			'fields' => array(
 				'namespace' => 'page_namespace',
@@ -76,6 +76,10 @@ class DeadendPagesPage extends PageQueryPage {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {

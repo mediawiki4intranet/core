@@ -730,6 +730,11 @@ abstract class ApiBase extends ContextSource {
 				$this->dieUsageMsg( array( 'nosuchpageid', $params['pageid'] ) );
 			}
 		}
+		// <IntraACL>
+		if ( !$pageObj->getTitle()->userCan( 'read' ) ) {
+			$this->dieUsageMsg( array( 'permission-denied' ) );
+		}
+		// </IntraACL>
 
 		return $pageObj;
 	}

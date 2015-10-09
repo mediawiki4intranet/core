@@ -74,7 +74,7 @@ class LonelyPagesPage extends PageQueryPage {
 		// Allow extensions to modify the query
 		Hooks::run( 'LonelyPagesQuery', array( &$tables, &$conds, &$joinConds ) );
 
-		return array(
+		$query = array(
 			'tables' => $tables,
 			'fields' => array(
 				'namespace' => 'page_namespace',
@@ -84,6 +84,10 @@ class LonelyPagesPage extends PageQueryPage {
 			'conds' => $conds,
 			'join_conds' => $joinConds
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function getOrderFields() {

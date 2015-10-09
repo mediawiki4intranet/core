@@ -106,7 +106,7 @@ class WantedFilesPage extends WantedQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array(
 				'imagelinks',
 				'page',
@@ -143,6 +143,10 @@ class WantedFilesPage extends WantedQueryPage {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=img_name' ), NS_FILE ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	protected function getGroupName() {

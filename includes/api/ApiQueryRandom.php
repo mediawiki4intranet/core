@@ -98,6 +98,11 @@ class ApiQueryRandom extends ApiQueryGeneratorBase {
 			}
 			if ( is_null( $resultPageSet ) ) {
 				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+				// <IntraACL>
+				if ( !$title->userCan( 'read' ) ) {
+					continue;
+				}
+				// </IntraACL>
 				$page = array(
 					'id' => (int)$row->page_id,
 				);

@@ -36,7 +36,7 @@ class WantedCategoriesPage extends WantedQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'categorylinks', 'page' ),
 			'fields' => array(
 				'namespace' => NS_CATEGORY,
@@ -49,6 +49,10 @@ class WantedCategoriesPage extends WantedQueryPage {
 				array( 'page_title = cl_to',
 					'page_namespace' => NS_CATEGORY ) ) )
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function preprocessResults( $db, $res ) {

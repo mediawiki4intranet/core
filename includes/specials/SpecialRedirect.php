@@ -78,7 +78,11 @@ class SpecialRedirect extends FormSpecialPage {
 			return null;
 		}
 		$userpage = Title::makeTitle( NS_USER, $username );
-
+		// <IntraACL>
+		if ( !$userpage->userCan( 'read' ) ) {
+			return null;
+		}
+		// </IntraACL>
 		return $userpage->getFullURL( '', false, PROTO_CURRENT );
 	}
 
@@ -90,7 +94,9 @@ class SpecialRedirect extends FormSpecialPage {
 	function dispatchFile() {
 		$title = Title::makeTitleSafe( NS_FILE, $this->mValue );
 
-		if ( !$title instanceof Title ) {
+		// <IntraACL>
+		if ( !$title instanceof Title || $title->getNamespace() != NS_FILE || !$title->userCan( 'read' ) ) {
+		// </IntraACL>
 			return null;
 		}
 		$file = wfFindFile( $title );

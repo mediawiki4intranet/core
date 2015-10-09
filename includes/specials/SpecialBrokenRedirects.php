@@ -51,7 +51,7 @@ class BrokenRedirectsPage extends QueryPage {
 	public function getQueryInfo() {
 		$dbr = wfGetDB( DB_SLAVE );
 
-		return array(
+		$query = array(
 			'tables' => array(
 				'redirect',
 				'p1' => 'page',
@@ -82,6 +82,10 @@ class BrokenRedirectsPage extends QueryPage {
 				) ),
 			),
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'p1', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

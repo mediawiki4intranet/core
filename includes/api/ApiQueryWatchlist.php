@@ -266,6 +266,11 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 
 			if ( is_null( $resultPageSet ) ) {
 				$vals = $this->extractRowInfo( $row );
+				// <IntraACL>
+				if ( !$vals ) {
+					continue;
+				}
+				// </IntraACL>
 				$fit = $this->getResult()->addValue( array( 'query', $this->getModuleName() ), null, $vals );
 				if ( !$fit ) {
 					$this->setContinueEnumParameter( 'continue', "$row->rc_timestamp|$row->rc_id" );
@@ -295,6 +300,11 @@ class ApiQueryWatchlist extends ApiQueryGeneratorBase {
 	private function extractRowInfo( $row ) {
 		/* Determine the title of the page that has been changed. */
 		$title = Title::makeTitle( $row->rc_namespace, $row->rc_title );
+		// <IntraACL>
+		if ( !$title || !$title->userCan( 'read' ) ) {
+			return false;
+		}
+		// </IntraACL>
 		$user = $this->getUser();
 
 		/* Our output data. */

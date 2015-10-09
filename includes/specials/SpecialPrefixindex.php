@@ -215,6 +215,11 @@ class SpecialPrefixindex extends SpecialAllPages {
 				while ( ( $n < $this->maxPerPage ) && ( $s = $res->fetchObject() ) ) {
 					$t = Title::makeTitle( $s->page_namespace, $s->page_title );
 					if ( $t ) {
+						// <IntraACL>
+						if ( !$t->userCan( 'read' ) ) {
+							continue;
+						}
+						// </IntraACL>
 						$displayed = $t->getText();
 						// Try not to generate unclickable links
 						if ( $this->stripPrefix && $prefixLength !== strlen( $displayed ) ) {

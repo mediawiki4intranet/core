@@ -365,6 +365,11 @@ abstract class UploadBase {
 
 			return $result;
 		}
+		// <IntraACL>
+		if ( !$nt->userCan( 'create' ) ) {
+			return array( 'status' => 'accessdenied' );
+		}
+		// </IntraACL>
 		$this->mDestName = $this->getLocalFile()->getName();
 
 		return true;
@@ -697,6 +702,14 @@ abstract class UploadBase {
 	public function performUpload( $comment, $pageText, $watch, $user ) {
 		$this->getLocalFile()->load( File::READ_LATEST );
 
+		// <IntraACL>
+		$status = NULL;
+		Hooks::run( 'PerformUpload', array( $this, $comment, $pageText, $watch, $user, &$status ) );
+		if ( $status ) {
+			return $status;
+		}
+		// </IntraACL>
+
 		$status = $this->getLocalFile()->upload(
 			$this->mTempPath,
 			$comment,
@@ -771,7 +784,9 @@ abstract class UploadBase {
 		/* Assume that if a user specified File:Something.jpg, this is an error
 		 * and that the namespace prefix needs to be stripped of.
 		 */
-		$title = Title::newFromText( $this->mDesiredDestName );
+		// <IntraACL>
+		$title = Title::newFromText( $this->mDesiredDestName, NS_FILE );
+		// </IntraACL>
 		if ( $title && $title->getNamespace() == NS_FILE ) {
 			$this->mFilteredName = $title->getDBkey();
 		} else {

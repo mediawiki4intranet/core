@@ -39,13 +39,17 @@ class MostlinkedCategoriesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'category' ),
 			'fields' => array( 'title' => 'cat_title',
 				'namespace' => NS_CATEGORY,
 				'value' => 'cat_pages' ),
 			'conds' => array( 'cat_pages > 0' ),
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=cat_title' ), NS_CATEGORY ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	function sortDescending() {

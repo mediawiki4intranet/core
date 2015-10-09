@@ -131,6 +131,10 @@ class NewFilesPager extends ReverseChronologicalPager {
 			'conds' => $conds
 		);
 
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=img_name' ), NS_FILE ) );
+		// </IntraACL>
+
 		return $query;
 	}
 

@@ -165,6 +165,11 @@ class ApiQueryFilearchive extends ApiQueryBase {
 			$file['id'] = (int)$row->fa_id;
 			$file['name'] = $row->fa_name;
 			$title = Title::makeTitle( NS_FILE, $row->fa_name );
+			// <IntraACL>
+			if ( !$title->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			self::addTitleInfo( $file, $title );
 
 			if ( $fld_description &&

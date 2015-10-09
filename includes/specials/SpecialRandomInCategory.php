@@ -147,6 +147,8 @@ class SpecialRandomInCategory extends FormSpecialPage {
 	 * @return Title|null Title object (or null if nothing to choose from)
 	 */
 	public function getRandomTitle() {
+		$try = 0;
+retry:
 		// Convert to float, since we do math with the random number.
 		$rand = (float)wfRandom();
 		$title = null;
@@ -179,7 +181,17 @@ class SpecialRandomInCategory extends FormSpecialPage {
 		}
 
 		if ( $row ) {
-			return Title::makeTitle( $row->page_namespace, $row->page_title );
+			$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+			// <IntraACL>
+			if ( !$title->userCan( 'read' ) ) {
+				if ( $try < 10 ) {
+					$try++;
+					goto retry;
+				}
+				return null;
+			}
+			// </IntraACL>
+			return $title;
 		}
 
 		return null;

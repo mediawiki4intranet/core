@@ -646,7 +646,11 @@ class SpecialSearch extends SpecialPage {
 		$out = "<ul class='mw-search-results'>\n";
 		$result = $matches->next();
 		while ( $result ) {
-			$out .= $this->showHit( $result, $terms );
+			// <IntraACL>
+			if ( $result->getTitle() && $result->getTitle()->userCan( 'read' ) ) {
+				$out .= $this->showHit( $result, $terms );
+			}
+			// </IntraACL>
 			$result = $matches->next();
 		}
 		$out .= "</ul>\n";

@@ -186,6 +186,11 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 
 			$this->pageMap[$row->page_namespace][$row->page_title] = $row->page_id;
 			$t = Title::makeTitle( $row->page_namespace, $row->page_title );
+			// <IntraACL>
+			if ( !$t->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( $row->page_is_redirect ) {
 				$this->redirTitles[] = $t;
 			}
@@ -309,9 +314,15 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 				$this->cont[] = $row->page_id;
 			}
 
+			$t = Title::makeTitle( $row->page_namespace, $row->page_title );
+			// <IntraACL>
+			if ( !$t->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			if ( is_null( $resultPageSet ) ) {
 				$a['pageid'] = intval( $row->page_id );
-				ApiQueryBase::addTitleInfo( $a, Title::makeTitle( $row->page_namespace, $row->page_title ) );
+				ApiQueryBase::addTitleInfo( $a, $t );
 				if ( $row->page_is_redirect ) {
 					$a['redirect'] = true;
 				}

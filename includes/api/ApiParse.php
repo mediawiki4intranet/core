@@ -115,6 +115,12 @@ class ApiParse extends ApiBase {
 				}
 
 				$titleObj = $rev->getTitle();
+				// <IntraACL>
+				if ( !$titleObj->userCan( 'read' ) ) {
+					$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+				}
+				// </IntraACL>
+
 				$wgTitle = $titleObj;
 				$pageObj = WikiPage::factory( $titleObj );
 				$popts = $this->makeParserOptions( $pageObj, $params );
@@ -203,6 +209,11 @@ class ApiParse extends ApiBase {
 			if ( !$titleObj || $titleObj->isExternal() ) {
 				$this->dieUsageMsg( array( 'invalidtitle', $title ) );
 			}
+			// <IntraACL>
+			if ( !$titleObj->userCan( 'read' ) ) {
+				$this->dieUsage( "You are not allowed to read this article", 'permissiondenied' );
+			}
+			// </IntraACL>
 			$wgTitle = $titleObj;
 			if ( $titleObj->canExist() ) {
 				$pageObj = WikiPage::factory( $titleObj );

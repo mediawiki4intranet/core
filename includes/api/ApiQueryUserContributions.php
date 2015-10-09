@@ -113,6 +113,9 @@ class ApiQueryContributions extends ApiQueryBase {
 			}
 
 			$vals = $this->extractRowInfo( $row );
+			if ( !$vals ) {
+				continue;
+			}
 			$fit = $this->getResult()->addValue( array( 'query', $this->getModuleName() ), null, $vals );
 			if ( !$fit ) {
 				$this->setContinueEnumParameter( 'continue', $this->continueStr( $row ) );
@@ -357,6 +360,11 @@ class ApiQueryContributions extends ApiQueryBase {
 		}
 
 		$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+		// <IntraACL>
+		if ( !$title || !$title->userCan( 'read' ) ) {
+			return false;
+		}
+		// </IntraACL>
 
 		if ( $this->fld_title ) {
 			ApiQueryBase::addTitleInfo( $vals, $title );

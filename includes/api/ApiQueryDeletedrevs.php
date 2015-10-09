@@ -403,11 +403,15 @@ class ApiQueryDeletedrevs extends ApiQueryBase {
 				$a['revisions'] = array( $rev );
 				ApiResult::setIndexedTagName( $a['revisions'], 'rev' );
 				$title = Title::makeTitle( $row->ar_namespace, $row->ar_title );
-				ApiQueryBase::addTitleInfo( $a, $title );
-				if ( $fld_token ) {
-					$a['token'] = $token;
+				// <IntraACL>
+				if ( $title->userCan( 'read' ) ) {
+				// </IntraACL>
+					ApiQueryBase::addTitleInfo( $a, $title );
+					if ( $fld_token ) {
+						$a['token'] = $token;
+					}
+					$fit = $result->addValue( array( 'query', $this->getModuleName() ), $pageID, $a );
 				}
-				$fit = $result->addValue( array( 'query', $this->getModuleName() ), $pageID, $a );
 			} else {
 				$pageID = $pageMap[$row->ar_namespace][$row->ar_title];
 				$fit = $result->addValue(

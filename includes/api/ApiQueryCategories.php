@@ -73,7 +73,7 @@ class ApiQueryCategories extends ApiQueryGeneratorBase {
 			$cats = array();
 			foreach ( $params['categories'] as $cat ) {
 				$title = Title::newFromText( $cat );
-				if ( !$title || $title->getNamespace() != NS_CATEGORY ) {
+				if ( !$title || $title->getNamespace() != NS_CATEGORY || !$title->userCan( 'read' ) ) {
 					$this->setWarning( "\"$cat\" is not a category" );
 				} else {
 					$cats[] = $title->getDBkey();
@@ -141,6 +141,11 @@ class ApiQueryCategories extends ApiQueryGeneratorBase {
 				}
 
 				$title = Title::makeTitle( NS_CATEGORY, $row->cl_to );
+				// <IntraACL>
+				if ( !$title->userCan( 'read' ) ) {
+					continue;
+				}
+				// </IntraACL>
 				$vals = array();
 				ApiQueryBase::addTitleInfo( $vals, $title );
 				if ( isset( $prop['sortkey'] ) ) {

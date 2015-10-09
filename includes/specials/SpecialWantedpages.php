@@ -90,6 +90,9 @@ class WantedPagesPage extends WantedQueryPage {
 		);
 		// Replacement for the WantedPages::getSQL hook
 		Hooks::run( 'WantedPages::getQueryInfo', array( &$this, &$query ) );
+		// <IntraACL>
+		Hooks::run( 'FilterPageQuery', array( &$query, 'pg1', NULL, NULL ) );
+		// </IntraACL>
 
 		return $query;
 	}

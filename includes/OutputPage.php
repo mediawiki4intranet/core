@@ -1340,6 +1340,12 @@ class OutputPage extends ContextSource {
 			'OutputPageMakeCategoryLinks',
 			array( &$this, $categories, &$this->mCategoryLinks ) )
 		) {
+// <IntraACL>
+            // Do not cloak category links during display
+            if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+                    $etc = haclfDisableTitlePatch();
+            }
+// </IntraACL>
 			foreach ( $categories as $category => $type ) {
 				$origcategory = $category;
 				$title = Title::makeTitleSafe( NS_CATEGORY, $category );
@@ -1354,6 +1360,11 @@ class OutputPage extends ContextSource {
 				$this->mCategories[] = $title->getText();
 				$this->mCategoryLinks[$type][] = Linker::link( $title, $text );
 			}
+			// <IntraACL>
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				haclfRestoreTitlePatch( $etc );
+			}
+			// </IntraACL>
 		}
 	}
 
@@ -2426,7 +2437,14 @@ class OutputPage extends ContextSource {
 			# not especially useful as a returnto parameter. Use the title
 			# from the request instead, if there was one.
 			$request = $this->getRequest();
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				// IntraACL -- do not produce "&returnto=Access_Denied" links
+				$hacl = haclfDisableTitlePatch();
+			}
 			$returnto = Title::newFromURL( $request->getVal( 'title', '' ) );
+			if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+				haclfRestoreTitlePatch( $hacl );
+			}
 			if ( $action == 'edit' ) {
 				$msg = 'whitelistedittext';
 				$displayReturnto = $returnto;
@@ -2658,7 +2676,9 @@ class OutputPage extends ContextSource {
 		} else {
 			$titleObj = Title::newFromText( $returnto );
 		}
-		if ( !is_object( $titleObj ) ) {
+		// <IntraACL>
+		if ( !$titleObj instanceof Title || !$titleObj->userCan( 'read' ) ) {
+		// </IntraACL>
 			$titleObj = Title::newMainPage();
 		}
 

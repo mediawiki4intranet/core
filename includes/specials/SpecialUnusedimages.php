@@ -70,6 +70,10 @@ class UnusedimagesPage extends ImageQueryPage {
 				'LEFT JOIN', 'il_to = page_title' );
 		}
 
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$retval, 'page', array( 'page_title=img_name' ), NS_FILE ) );
+		// </IntraACL>
+
 		return $retval;
 	}
 

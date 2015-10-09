@@ -762,7 +762,10 @@ class ApiUpload extends ApiBase {
 				}
 
 				ApiResult::setIndexedTagName( $error, 'error' );
-				$this->dieUsage( 'An internal error occurred', 'internal-error', 0, $error );
+				// <IntraACL>
+				$text = $status->getWikiText();
+				$this->dieUsage( $text, 'internal-error', 0, $error );
+				// </IntraACL>
 			}
 			$result['result'] = 'Success';
 		}

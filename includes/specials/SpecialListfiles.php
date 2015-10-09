@@ -295,13 +295,17 @@ class ImageListPager extends TablePager {
 			$join_conds = array( 'oldimage' => array( 'LEFT JOIN', 'oi_name = img_name' ) );
 		}
 
-		return array(
+		$query = array(
 			'tables' => $tables,
 			'fields' => $fields,
 			'conds' => $this->buildQueryConds( $table ),
 			'options' => $options,
 			'join_conds' => $join_conds
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', array( 'page_title=img_name' ), NS_FILE ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**
@@ -418,6 +422,18 @@ class ImageListPager extends TablePager {
 		}
 		# Do a link batch query for names and userpages
 		UserCache::singleton()->doQuery( $userIds, array( 'userpage' ), __METHOD__ );
+	}
+
+	function formatRow( $row ) {
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			$filePage = Title::makeTitleSafe( NS_FILE, $row->img_name );
+			if ( $filePage && !$filePage->userCan('read') ) {
+				return '';
+			}
+		}
+		// </IntraACL>
+		return parent::formatRow( $row );
 	}
 
 	/**

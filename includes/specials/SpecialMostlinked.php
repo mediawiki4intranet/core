@@ -44,7 +44,7 @@ class MostlinkedPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array( 'pagelinks', 'page' ),
 			'fields' => array(
 				'namespace' => 'pl_namespace',
@@ -69,6 +69,10 @@ class MostlinkedPage extends QueryPage {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**

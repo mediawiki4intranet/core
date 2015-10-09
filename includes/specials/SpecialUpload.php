@@ -345,6 +345,8 @@ class SpecialUpload extends SpecialPage {
 	 *   warnings and it should continue processing
 	 */
 	protected function showUploadWarning( $warnings ) {
+		wfRunHooks( 'SpecialUploadCheckWarnings', array( $this, &$warnings ) );
+
 		# If there are no warnings, or warnings we can ignore, return early.
 		# mDestWarningAck is set when some javascript has shown the warning
 		# to the user. mForReUpload is set when the user clicks the "upload a
@@ -574,7 +576,9 @@ class SpecialUpload extends SpecialPage {
 			return true;
 		}
 
-		$local = wfLocalFile( $this->mDesiredDestName );
+		// <IntraACL>
+		$local = wfLocalFile( $desiredTitleObj );
+		// </IntraACL>
 		if ( $local && $local->exists() ) {
 			// We're uploading a new version of an existing file.
 			// No creation, so don't watch it if we're not already.

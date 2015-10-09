@@ -314,14 +314,20 @@ class ApiQueryInfo extends ApiQueryBase {
 			$cont = explode( '|', $this->params['continue'] );
 			$this->dieContinueUsageIf( count( $cont ) != 2 );
 			$conttitle = Title::makeTitleSafe( $cont[0], $cont[1] );
-			foreach ( $this->everything as $pageid => $title ) {
-				if ( Title::compare( $title, $conttitle ) >= 0 ) {
-					break;
+			// <IntraACL>
+			if ( $conttitle && $conttitle->userCan( 'read' ) ) {
+			// </IntraACL>
+				foreach ( $this->everything as $pageid => $title ) {
+					if ( Title::compare( $title, $conttitle ) >= 0 ) {
+						break;
+					}
+					unset( $this->titles[$pageid] );
+					unset( $this->missing[$pageid] );
+					unset( $this->everything[$pageid] );
 				}
-				unset( $this->titles[$pageid] );
-				unset( $this->missing[$pageid] );
-				unset( $this->everything[$pageid] );
+			// <IntraACL>
 			}
+			// </IntraACL>
 		}
 
 		$this->pageRestrictions = $pageSet->getCustomField( 'page_restrictions' );

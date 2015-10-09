@@ -89,6 +89,11 @@ class SpecialEditTags extends UnlistedSpecialPage {
 
 		$this->typeName = $request->getVal( 'type' );
 		$this->targetObj = Title::newFromText( $request->getText( 'target' ) );
+		// <IntraACL>
+		if ( !$this->targetObj->userCan( 'read' ) ) {
+			throw new ErrorPageError( 'permission-denied', 'permission-denied' );
+		}
+		// </IntraACL>
 
 		// sanity check of parameter
 		switch ( $this->typeName ) {

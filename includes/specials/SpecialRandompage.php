@@ -73,6 +73,15 @@ class RandomPage extends SpecialPage {
 			return;
 		}
 
+		// <IntraACL>
+		// Do not redirect to non-readable pages, just print permission errors in that case
+		global $wgUser;
+		$permErrors = $title->getUserPermissionsErrors( 'read', $wgUser );
+		if ( count( $permErrors ) ) {
+			throw new PermissionsError( 'read', $permErrors );
+		}
+		// </IntraACL>
+
 		$redirectParam = $this->isRedirect() ? array( 'redirect' => 'no' ) : array();
 		$query = array_merge( $this->getRequest()->getValues(), $redirectParam );
 		unset( $query['title'] );

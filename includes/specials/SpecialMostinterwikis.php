@@ -43,7 +43,7 @@ class MostinterwikisPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
+		$query = array(
 			'tables' => array(
 				'langlinks',
 				'page'
@@ -66,6 +66,10 @@ class MostinterwikisPage extends QueryPage {
 				)
 			)
 		);
+		// <IntraACL>
+		wfRunHooks( 'FilterPageQuery', array( &$query, 'page', NULL, NULL ) );
+		// </IntraACL>
+		return $query;
 	}
 
 	/**
@@ -98,7 +102,9 @@ class MostinterwikisPage extends QueryPage {
 	 */
 	function formatResult( $skin, $result ) {
 		$title = Title::makeTitleSafe( $result->namespace, $result->title );
-		if ( !$title ) {
+		// <IntraACL>
+		if ( !$title || !$title->userCan( 'read' ) ) {
+		// </IntraACL>
 			return Html::element(
 				'span',
 				array( 'class' => 'mw-invalidtitle' ),

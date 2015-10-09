@@ -76,15 +76,16 @@ class ChangesFeed {
 	 * @return null|bool True or null
 	 */
 	public function execute( $feed, $rows, $lastmod, $opts ) {
-		global $wgLang, $wgRenderHashAppend;
+		global $wgLang, $wgRenderHashAppend, $wgUser;
 
 		if ( !FeedUtils::checkFeedOutput( $this->format ) ) {
 			return null;
 		}
 
+		$userid = $wgUser->getId();
 		$optionsHash = md5( serialize( $opts->getAllValues() ) ) . $wgRenderHashAppend;
-		$timekey = wfMemcKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash, 'timestamp' );
-		$key = wfMemcKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash );
+		$timekey = wfMemcKey( $this->type, $this->format, $userid, $wgLang->getCode(), $optionsHash, 'timestamp' );
+		$key = wfMemcKey( $this->type, $this->format, $userid, $wgLang->getCode(), $optionsHash );
 
 		FeedUtils::checkPurge( $timekey, $key );
 
@@ -205,6 +206,11 @@ class ChangesFeed {
 
 		foreach ( $sorted as $obj ) {
 			$title = Title::makeTitle( $obj->rc_namespace, $obj->rc_title );
+			// <IntraACL>
+			if ( !$title->userCan( 'read' ) ) {
+				continue;
+			}
+			// </IntraACL>
 			$talkpage = MWNamespace::canTalk( $obj->rc_namespace )
 				? $title->getTalkPage()->getFullURL()
 				: '';

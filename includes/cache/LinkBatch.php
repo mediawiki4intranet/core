@@ -149,6 +149,11 @@ class LinkBatch {
 		if ( !$res ) {
 			return array();
 		}
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			$etc = haclfDisableTitlePatch();
+		}
+		// </IntraACL>
 
 		// For each returned entry, add it to the list of good links, and remove it from $remaining
 
@@ -170,6 +175,11 @@ class LinkBatch {
 			}
 		}
 
+		// <IntraACL>
+		if ( defined( 'HACL_HALOACL_VERSION' ) ) {
+			haclfRestoreTitlePatch( $etc );
+		}
+		// </IntraACL>
 		return $ids;
 	}
 
