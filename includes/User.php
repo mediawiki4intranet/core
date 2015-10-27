@@ -4293,7 +4293,7 @@ class User implements IDBAccessObject {
 				$wgLang->timeanddate( $expiration, false ),
 				$invalidateURL,
 				$wgLang->date( $expiration, false ),
-				$wgLang->time( $expiration, false ) )->text() );
+				$wgLang->time( $expiration, false ) ) );
 	}
 
 	/**
@@ -4317,6 +4317,13 @@ class User implements IDBAccessObject {
 				wfMessage( 'emailsender' )->inContentLanguage()->text() );
 		}
 		$to = MailAddress::newFromUser( $this );
+
+		if ( $body instanceof Message ) {
+			$body = array(
+				'html' => $body->parse(),
+				'text' => $body->text(),
+			);
+		}
 
 		return UserMailer::send( $to, $sender, $subject, $body, array(
 			'replyTo' => $replyto,
