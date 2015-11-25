@@ -429,6 +429,7 @@ return array(
 		'skinStyles' => array(
 			'default' => 'resources/lib/jquery.ui/themes/smoothness/jquery.ui.datepicker.css',
 		),
+		'position' => 'bottom',
 		'languageScripts' => array(
 			'af' => 'resources/lib/jquery.ui/i18n/jquery.ui.datepicker-af.js',
 			'ar' => 'resources/lib/jquery.ui/i18n/jquery.ui.datepicker-ar.js',
