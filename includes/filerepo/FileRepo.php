@@ -185,7 +185,7 @@ class FileRepo {
 		$this->transformVia404 = !empty( $info['transformVia404'] );
 		$this->abbrvThreshold = isset( $info['abbrvThreshold'] )
 			? $info['abbrvThreshold']
-			: 255;
+			: 232;
 		$this->isPrivate = !empty( $info['isPrivate'] );
 		// Give defaults for the basic zones...
 		$this->zones = isset( $info['zones'] ) ? $info['zones'] : array();
