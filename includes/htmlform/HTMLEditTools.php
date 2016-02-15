@@ -6,12 +6,10 @@ class HTMLEditTools extends HTMLFormField {
 	}
 
 	public function getTableRow( $value ) {
-		$msg = $this->formatMsg();
-
 		return
 			'<tr><td></td><td class="mw-input">' .
 			'<div class="mw-editTools">' .
-			$msg->parseAsBlock() .
+			$this->formatParsed() .
 			"</div></td></tr>\n";
 	}
 
@@ -21,9 +19,7 @@ class HTMLEditTools extends HTMLFormField {
 	 * @since 1.20
 	 */
 	public function getDiv( $value ) {
-		$msg = $this->formatMsg();
-
-		return '<div class="mw-editTools">' . $msg->parseAsBlock() . '</div>';
+		return '<div class="mw-editTools">' . $this->formatParsed() . '</div>';
 	}
 
 	/**
@@ -33,6 +29,15 @@ class HTMLEditTools extends HTMLFormField {
 	 */
 	public function getRaw( $value ) {
 		return $this->getDiv( $value );
+	}
+
+	protected function formatParsed() {
+		$html = $this->formatMsg()->parseAsBlock();
+		$out = MessageCache::singleton()->getParser()->getOutput();
+		$this->mParent->getOutput()->addModules( $out->getModules() );
+		$this->mParent->getOutput()->addModuleStyles( $out->getModuleStyles() );
+		$this->mParent->getOutput()->addModuleScripts( $out->getModuleScripts() );
+		return $html;
 	}
 
 	protected function formatMsg() {
