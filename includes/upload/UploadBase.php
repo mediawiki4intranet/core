@@ -1268,6 +1268,7 @@ abstract class UploadBase {
 	 * @return mixed False of the file is verified (does not contain scripts), array otherwise.
 	 */
 	protected function detectScriptInSvg( $filename, $partial ) {
+		global $wgRawHtml;
 		$this->mSVGNSError = false;
 		$check = new XmlTypeCheck(
 			$filename,
@@ -1280,7 +1281,7 @@ abstract class UploadBase {
 			// But only when non-partial (bug 65724)
 			return $partial ? false : array( 'uploadinvalidxml' );
 		} elseif ( $check->filterMatch ) {
-			if ( $this->mSVGNSError ) {
+			if ( $this->mSVGNSError && !$wgRawHtml ) {
 				return array( 'uploadscriptednamespace', $this->mSVGNSError );
 			}
 
