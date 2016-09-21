@@ -52,8 +52,10 @@ class ChronologyProtector {
 		}
 		if ( !$this->initialized ) {
 			$this->initialized = true;
-			if ( isset( $_SESSION[__CLASS__] ) && is_array( $_SESSION[__CLASS__] ) ) {
-				$this->startupPositions = $_SESSION[__CLASS__];
+			global $wgRequest;
+			$data = $wgRequest->getSessionData( __CLASS__ );
+			if ( is_array( $data ) ) {
+				$this->startupPositions = $data;
 			}
 		}
 		$masterName = $lb->getServerName( 0 );
@@ -103,7 +105,8 @@ class ChronologyProtector {
 		if ( session_id() != '' && count( $this->shutdownPositions ) ) {
 			wfDebug( __METHOD__ . ": saving master pos for " .
 				count( $this->shutdownPositions ) . " master(s)\n" );
-			$_SESSION[__CLASS__] = $this->shutdownPositions;
+			global $wgRequest;
+			$wgRequest->setSessionData( __CLASS__, $this->shutdownPositions );
 		}
 	}
 }

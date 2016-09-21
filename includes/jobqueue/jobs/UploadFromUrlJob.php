@@ -139,7 +139,10 @@ class UploadFromUrlJob extends Job {
 					)->text() );
 			}
 		} else {
-			wfSetupSession( $this->params['sessionId'] );
+			session_id( $this->params['sessionId'] );
+			MediaWiki\suppressWarnings();
+			session_start();
+			MediaWiki\restoreWarnings();
 			if ( $status->isOk() ) {
 				$this->storeResultInSession( 'Success',
 					'filename', $this->upload->getLocalFile()->getName() );
@@ -169,8 +172,13 @@ class UploadFromUrlJob extends Job {
 	 * Initialize the session data. Sets the initial result to queued.
 	 */
 	public function initializeSessionData() {
+		session_id( $this->params['sessionId'] );
+		MediaWiki\suppressWarnings();
+		session_start();
+		MediaWiki\restoreWarnings();
 		$session =& self::getSessionData( $this->params['sessionKey'] );
 		$session['result'] = 'Queued';
+		session_write_close();
 	}
 
 	/**

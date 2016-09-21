@@ -38,6 +38,8 @@
 class WebRequest {
 	protected $data, $headers = array();
 
+	protected $sessionId, $sessionData = array();
+
 	/**
 	 * Flag to make WebRequest::getHeader return an array of values.
 	 * @since 1.26
@@ -928,6 +930,11 @@ class WebRequest {
 		return $value;
 	}
 
+	public function updateSession() {
+		$this->sessionId = session_id();
+		$this->sessionData = $_SESSION;
+	}
+
 	/**
 	 * Get data from $_SESSION
 	 *
@@ -935,10 +942,10 @@ class WebRequest {
 	 * @return mixed
 	 */
 	public function getSessionData( $key ) {
-		if ( !isset( $_SESSION[$key] ) ) {
+		if ( !isset( $this->sessionData[$key] ) ) {
 			return null;
 		}
-		return $_SESSION[$key];
+		return $this->sessionData[$key];
 	}
 
 	/**
@@ -947,8 +954,29 @@ class WebRequest {
 	 * @param string $key Name of key in $_SESSION
 	 * @param mixed $data
 	 */
-	public function setSessionData( $key, $data ) {
-		$_SESSION[$key] = $data;
+	public function setSessionData( $key, $data = NULL ) {
+		if ( $this->sessionId ) {
+			session_id( $this->sessionId );
+			MediaWiki\suppressWarnings();
+			session_start();
+			MediaWiki\restoreWarnings();
+		} else {
+			wfDebug( __METHOD__.": session not started\n" );
+		}
+		if ( $data !== NULL || !is_array( $key ) ) {
+			$key = array( $key => $data );
+		}
+		foreach ( $key as $k => $v ) {
+			if ( $v === NULL ) {
+				unset( $_SESSION[$k] );
+			} else {
+				$_SESSION[$k] = $v;
+			}
+		}
+		if ( $this->sessionId ) {
+			$this->updateSession();
+			session_write_close();
+		}
 	}
 
 	/**
@@ -1458,8 +1486,17 @@ class FauxRequest extends WebRequest {
 	 * @param string $key
 	 * @param array $data
 	 */
-	public function setSessionData( $key, $data ) {
-		$this->session[$key] = $data;
+	public function setSessionData( $key, $data = NULL ) {
+		if ( $data !== NULL || !is_array( $key ) ) {
+			$key = array( $key => $data );
+		}
+		foreach ( $key as $k => $v ) {
+			if ( $v === NULL ) {
+				unset( $this->session[$k] );
+			} else {
+				$this->session[$k] = $v;
+			}
+		}
 	}
 
 	/**
@@ -1551,7 +1588,7 @@ class DerivativeRequest extends FauxRequest {
 		return $this->base->getSessionData( $key );
 	}
 
-	public function setSessionData( $key, $data ) {
+	public function setSessionData( $key, $data = NULL ) {
 		$this->base->setSessionData( $key, $data );
 	}
 

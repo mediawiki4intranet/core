@@ -3642,9 +3642,7 @@ class User implements IDBAccessObject {
 
 		Hooks::run( 'UserSetCookies', array( $this, &$session, &$cookies ) );
 
-		foreach ( $session as $name => $value ) {
-			$request->setSessionData( $name, $value );
-		}
+		$request->setSessionData( $session );
 		foreach ( $cookies as $name => $value ) {
 			if ( $value === false ) {
 				$this->clearCookie( $name );
@@ -3689,8 +3687,7 @@ class User implements IDBAccessObject {
 	public function doLogout() {
 		$this->clearInstanceCache( 'defaults' );
 
-		$this->getRequest()->setSessionData( 'wsUserID', 0 );
-		$this->getRequest()->setSessionData( 'wsEditToken', null );
+		$this->getRequest()->setSessionData( array( 'wsUserID' => 0, 'wsEditToken' => null ) );
 
 		$this->clearCookie( 'UserID' );
 		$this->clearCookie( 'Token' );

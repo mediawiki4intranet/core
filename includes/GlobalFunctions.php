@@ -3496,17 +3496,23 @@ function wfFixSessionID() {
  */
 function wfResetSessionID() {
 	global $wgCookieSecure;
+	global $wgRequest;
 	$oldSessionId = session_id();
 	$cookieParams = session_get_cookie_params();
 	if ( wfCheckEntropy() && $wgCookieSecure == $cookieParams['secure'] ) {
+		MediaWiki\suppressWarnings();
+		session_start();
+		MediaWiki\restoreWarnings();
 		session_regenerate_id( false );
+		$wgRequest->updateSession();
+		session_write_close();
 	} else {
 		$tmp = $_SESSION;
 		MediaWiki\suppressWarnings(); // hide warnings for unit tests
 		session_destroy();
 		MediaWiki\restoreWarnings();
 		wfSetupSession( MWCryptRand::generateHex( 32 ) );
-		$_SESSION = $tmp;
+		$wgRequest->setSessionData( $tmp );
 	}
 	$newSessionId = session_id();
 }
@@ -3519,6 +3525,7 @@ function wfResetSessionID() {
 function wfSetupSession( $sessionId = false ) {
 	global $wgSessionsInObjectCache, $wgSessionHandler;
 	global $wgCookiePath, $wgCookieDomain, $wgCookieSecure, $wgCookieHttpOnly;
+	global $wgRequest;
 
 	if ( $wgSessionsInObjectCache ) {
 		ObjectCacheSessionHandler::install();
@@ -3544,6 +3551,11 @@ function wfSetupSession( $sessionId = false ) {
 	if ( $wgSessionsInObjectCache ) {
 		ObjectCacheSessionHandler::renewCurrentSession();
 	}
+	$wgRequest->updateSession();
+	$data = $_SESSION;
+
+	session_write_close();
+	$_SESSION = $data;
 }
 
 /**
