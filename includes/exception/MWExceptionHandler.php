@@ -89,7 +89,7 @@ class MWExceptionHandler {
 				if ( $cmdLine ) {
 					self::printError( $message );
 				} else {
-					echo nl2br( htmlspecialchars( $message ) ) . "\n";
+					echo nl2br( htmlspecialchars( $message, ENT_SUBSTITUTE ) ) . "\n";
 				}
 			}
 		} else {
@@ -103,7 +103,7 @@ class MWExceptionHandler {
 			if ( $cmdLine ) {
 				self::printError( $message );
 			} else {
-				echo nl2br( htmlspecialchars( $message ) ) . "\n";
+				echo nl2br( htmlspecialchars( $message, ENT_SUBSTITUTE ) ) . "\n";
 			}
 
 		}
