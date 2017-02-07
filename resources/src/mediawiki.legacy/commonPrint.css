@@ -81,7 +81,7 @@ p {
 
 pre, .mw-code {
 	border: 1pt dashed black;
-	white-space: pre;
+	white-space: pre-wrap;
 	font-size: 8pt;
 	overflow: auto;
 	padding: 1em 0;
