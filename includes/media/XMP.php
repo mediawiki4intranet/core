@@ -531,6 +531,10 @@ class XMPReader implements LoggerAwareInterface {
 		$reader = new XMLReader();
 		$result = null;
 
+		// Even with LIBXML_NOWARNING set, XMLReader::read/open give warnings
+		// when parsing truncated XML, which causes unit tests to fail.
+		MediaWiki\suppressWarnings();
+
 		// For XMLReader to parse incomplete/invalid XML, it has to be open()'ed
 		// instead of using XML().
 		$reader->open(
@@ -547,9 +551,6 @@ class XMPReader implements LoggerAwareInterface {
 		);
 		$reader->setParserProperty( XMLReader::SUBST_ENTITIES, false );
 
-		// Even with LIBXML_NOWARNING set, XMLReader::read gives a warning
-		// when parsing truncated XML, which causes unit tests to fail.
-		MediaWiki\suppressWarnings();
 		while ( $reader->read() ) {
 			if ( $reader->nodeType === XMLReader::ELEMENT ) {
 				// Reached the first element without hitting a doctype declaration
