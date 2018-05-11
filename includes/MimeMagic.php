@@ -1005,6 +1005,13 @@ class MimeMagic {
 			wfDebug( __METHOD__ . ": no magic mime detector found!\n" );
 		}
 
+		if ( substr( $m, 0, strlen( 'application/vnd.ms-office' ) ) === 'application/vnd.ms-office' ) {
+			$buf = file_get_contents( $file, false, NULL, 0, 2048 );
+			if ( strpos( $buf, "V\000i\000s\000i\000o\000D\000o\000c" ) !== false ) {
+				$m = 'application/vnd.visio';
+			}
+		}
+
 		if ( $m ) {
 			# normalize
 			$m = preg_replace( '![;, ].*$!', '', $m ); #strip charset, etc
