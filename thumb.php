@@ -340,10 +340,6 @@ function wfStreamThumb( array $params ) {
 		$errorMsg = $thumb->getHtmlMsg();
 	} elseif ( !$thumb->hasFile() ) {
 		$errorMsg = $msg->rawParams( 'No path supplied in thumbnail object' )->escaped();
-	} elseif ( $thumb->fileIsSource() ) {
-		$errorMsg = $msg->
-			rawParams( 'Image was not scaled, is the requested width bigger than the source?' )->escaped();
-		$errorCode = 400;
 	}
 
 	if ( $errorMsg !== false ) {

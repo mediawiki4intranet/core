@@ -198,7 +198,9 @@ abstract class MediaTransformOutput {
 	 */
 	public function streamFile( $headers = array() ) {
 		if ( !$this->path ) {
-			return false;
+			$be = $this->file->getRepo()->getBackend();
+
+			return $be->streamFile( array( 'src' => $this->file->getPath(), 'headers' => $headers ) )->isOK();
 		} elseif ( FileBackend::isStoragePath( $this->path ) ) {
 			$be = $this->file->getRepo()->getBackend();
 

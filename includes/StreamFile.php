@@ -161,6 +161,8 @@ class StreamFile {
 					return 'image/jpeg';
 				case 'jpeg':
 					return 'image/jpeg';
+				case 'svg':
+					return 'image/svg+xml';
 			}
 
 			return 'unknown/unknown';

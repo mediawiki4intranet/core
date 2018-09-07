@@ -129,27 +129,9 @@ class SvgHandler extends ImageHandler {
 	 * @return bool
 	 */
 	function normaliseParams( $image, &$params ) {
-		global $wgSVGMaxSize;
 		if ( !parent::normaliseParams( $image, $params ) ) {
 			return false;
 		}
-		# Don't make an image bigger than wgMaxSVGSize on the smaller side
-		if ( $params['physicalWidth'] <= $params['physicalHeight'] ) {
-			if ( $params['physicalWidth'] > $wgSVGMaxSize ) {
-				$srcWidth = $image->getWidth( $params['page'] );
-				$srcHeight = $image->getHeight( $params['page'] );
-				$params['physicalWidth'] = $wgSVGMaxSize;
-				$params['physicalHeight'] = File::scaleHeight( $srcWidth, $srcHeight, $wgSVGMaxSize );
-			}
-		} else {
-			if ( $params['physicalHeight'] > $wgSVGMaxSize ) {
-				$srcWidth = $image->getWidth( $params['page'] );
-				$srcHeight = $image->getHeight( $params['page'] );
-				$params['physicalWidth'] = File::scaleHeight( $srcHeight, $srcWidth, $wgSVGMaxSize );
-				$params['physicalHeight'] = $wgSVGMaxSize;
-			}
-		}
-
 		return true;
 	}
 
@@ -170,134 +152,7 @@ class SvgHandler extends ImageHandler {
 		$physicalWidth = $params['physicalWidth'];
 		$physicalHeight = $params['physicalHeight'];
 		$lang = isset( $params['lang'] ) ? $params['lang'] : $this->getDefaultRenderLanguage( $image );
-
-		if ( $flags & self::TRANSFORM_LATER ) {
-			return new ThumbnailImage( $image, $dstUrl, $dstPath, $params );
-		}
-
-		$metadata = $this->unpackMetadata( $image->getMetadata() );
-		if ( isset( $metadata['error'] ) ) { // sanity check
-			$err = wfMessage( 'svg-long-error', $metadata['error']['message'] )->text();
-
-			return new MediaTransformError( 'thumbnail_error', $clientWidth, $clientHeight, $err );
-		}
-
-		if ( !wfMkdirParents( dirname( $dstPath ), null, __METHOD__ ) ) {
-			return new MediaTransformError( 'thumbnail_error', $clientWidth, $clientHeight,
-				wfMessage( 'thumbnail_dest_directory' )->text() );
-		}
-
-		$srcPath = $image->getLocalRefPath();
-		if ( $srcPath === false ) { // Failed to get local copy
-			wfDebugLog( 'thumbnail',
-				sprintf( 'Thumbnail failed on %s: could not get local copy of "%s"',
-					wfHostname(), $image->getName() ) );
-
-			return new MediaTransformError( 'thumbnail_error',
-				$params['width'], $params['height'],
-				wfMessage( 'filemissing' )->text()
-			);
-		}
-
-		// Make a temp dir with a symlink to the local copy in it.
-		// This plays well with rsvg-convert policy for external entities.
-		// https://git.gnome.org/browse/librsvg/commit/?id=f01aded72c38f0e18bc7ff67dee800e380251c8e
-		$tmpDir = wfTempDir() . '/svg_' . wfRandomString( 24 );
-		$lnPath = "$tmpDir/" . basename( $srcPath );
-		$ok = mkdir( $tmpDir, 0771 ) && symlink( $srcPath, $lnPath );
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		$cleaner = new ScopedCallback( function () use ( $tmpDir, $lnPath ) {
-			MediaWiki\suppressWarnings();
-			unlink( $lnPath );
-			rmdir( $tmpDir );
-			MediaWiki\restoreWarnings();
-		} );
-		if ( !$ok ) {
-			wfDebugLog( 'thumbnail',
-				sprintf( 'Thumbnail failed on %s: could not link %s to %s',
-					wfHostname(), $lnPath, $srcPath ) );
-			return new MediaTransformError( 'thumbnail_error',
-				$params['width'], $params['height'],
-				wfMessage( 'thumbnail-temp-create' )->text()
-			);
-		}
-
-		$status = $this->rasterize( $lnPath, $dstPath, $physicalWidth, $physicalHeight, $lang );
-		if ( $status === true ) {
-			return new ThumbnailImage( $image, $dstUrl, $dstPath, $params );
-		} else {
-			return $status; // MediaTransformError
-		}
-	}
-
-	/**
-	 * Transform an SVG file to PNG
-	 * This function can be called outside of thumbnail contexts
-	 * @param string $srcPath
-	 * @param string $dstPath
-	 * @param string $width
-	 * @param string $height
-	 * @param bool|string $lang Language code of the language to render the SVG in
-	 * @throws MWException
-	 * @return bool|MediaTransformError
-	 */
-	public function rasterize( $srcPath, $dstPath, $width, $height, $lang = false ) {
-		global $wgSVGConverters, $wgSVGConverter, $wgSVGConverterPath;
-		$err = false;
-		$retval = '';
-		if ( isset( $wgSVGConverters[$wgSVGConverter] ) ) {
-			if ( is_array( $wgSVGConverters[$wgSVGConverter] ) ) {
-				// This is a PHP callable
-				$func = $wgSVGConverters[$wgSVGConverter][0];
-				$args = array_merge( array( $srcPath, $dstPath, $width, $height, $lang ),
-					array_slice( $wgSVGConverters[$wgSVGConverter], 1 ) );
-				if ( !is_callable( $func ) ) {
-					throw new MWException( "$func is not callable" );
-				}
-				$err = call_user_func_array( $func, $args );
-				$retval = (bool)$err;
-			} else {
-				// External command
-				$cmd = str_replace(
-					array( '$path/', '$width', '$height', '$input', '$output' ),
-					array( $wgSVGConverterPath ? wfEscapeShellArg( "$wgSVGConverterPath/" ) : "",
-						intval( $width ),
-						intval( $height ),
-						wfEscapeShellArg( $srcPath ),
-						wfEscapeShellArg( $dstPath ) ),
-					$wgSVGConverters[$wgSVGConverter]
-				);
-
-				$env = array();
-				if ( $lang !== false ) {
-					$env['LANG'] = $lang;
-				}
-
-				wfDebug( __METHOD__ . ": $cmd\n" );
-				$err = wfShellExecWithStderr( $cmd, $retval, $env );
-			}
-		}
-		$removed = $this->removeBadFile( $dstPath, $retval );
-		if ( $retval != 0 || $removed ) {
-			$this->logErrorForExternalProcess( $retval, $err, $cmd );
-			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
-		}
-
-		return true;
-	}
-
-	public static function rasterizeImagickExt( $srcPath, $dstPath, $width, $height ) {
-		$im = new Imagick( $srcPath );
-		$im->setImageFormat( 'png' );
-		$im->setBackgroundColor( 'transparent' );
-		$im->setImageDepth( 8 );
-
-		if ( !$im->thumbnailImage( intval( $width ), intval( $height ), /* fit */ false ) ) {
-			return 'Could not resize image';
-		}
-		if ( !$im->writeImage( $dstPath ) ) {
-			return "Could not write to $dstPath";
-		}
+		return new ThumbnailImage( $image, $image->getURL(), NULL, $params );
 	}
 
 	/**
@@ -321,7 +176,7 @@ class SvgHandler extends ImageHandler {
 	}
 
 	function getThumbType( $ext, $mime, $params = null ) {
-		return array( 'png', 'image/png' );
+		return array( 'svg', 'image/svg+xml' );
 	}
 
 	/**
