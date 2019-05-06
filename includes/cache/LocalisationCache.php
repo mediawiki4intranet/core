@@ -520,9 +520,9 @@ class LocalisationCache {
 		MediaWiki\restoreWarnings();
 
 		if ( $_fileType == 'core' || $_fileType == 'extension' ) {
-			$data = compact( self::$allKeys );
+			$data = @compact( self::$allKeys );
 		} elseif ( $_fileType == 'aliases' ) {
-			$data = compact( 'aliases' );
+			$data = @compact( 'aliases' );
 		} else {
 			throw new MWException( __METHOD__ . ": Invalid file type: $_fileType" );
 		}
