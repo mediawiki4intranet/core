@@ -191,7 +191,7 @@ class Hooks {
 			 */
 			$retval = null;
 			$badhookmsg = null;
-			$hook_args = array_merge( $hook, $args );
+			$hook_args = $hook ? array_merge( $hook, $args ) : $args;
 
 			// mark hook as deprecated, if deprecation version is specified
 			if ( $deprecatedVersion !== null ) {

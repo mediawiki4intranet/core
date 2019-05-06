@@ -2106,7 +2106,7 @@ class Title {
 		$result = true;
 		if (
 			$rigor !== 'quick'
-			&& !( $short && count( $errors ) > 0 )
+			&& !( $short && $errors && count( $errors ) > 0 )
 			&& !Hooks::run( 'getUserPermissionsErrorsExpensive', array( &$this, &$user, $action, &$result ) )
 		) {
 			if ( $result !== true ) {

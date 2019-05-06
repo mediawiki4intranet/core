@@ -29,9 +29,9 @@
  */
 class SectionProfiler {
 	/** @var array Map of (mem,real,cpu) */
-	protected $start;
+	protected $start = array( 'cpu' => 0, 'memory' => 0, 'real' => 0 );
 	/** @var array Map of (mem,real,cpu) */
-	protected $end;
+	protected $end = array( 'cpu' => 0, 'memory' => 0, 'real' => 0 );
 	/** @var array List of resolved profile calls with start/end data */
 	protected $stack = array();
 	/** @var array Queue of open profile calls with start data */

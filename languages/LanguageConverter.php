@@ -691,7 +691,7 @@ class LanguageConverter {
 							$warningDone = true;
 						}
 						$startPos += 2;
-						continue;
+						continue(2);
 					}
 					// Recursively parse another rule
 					$inner .= $this->recursiveConvertRule( $text, $variant, $startPos, $depth + 1 );
