@@ -3103,7 +3103,6 @@
 	"hebrew-calendar-m10-gen": "Таммуза",
 	"hebrew-calendar-m11-gen": "Ава",
 	"hebrew-calendar-m12-gen": "Элула",
-	"signature": "[[{{ns:user}}:$1|$2]] ([[{{ns:user_talk}}:$1|обсуждение]])",
 	"duplicate-defaultsort": "Внимание. Ключ сортировки по умолчанию «$2» переопределяет прежний ключ сортировки по умолчанию «$1».",
 	"duplicate-displaytitle": "<strong>Внимание:</strong> Отображаемое название «$2» переопределяет ранее заданное отображаемое название «$1».",
 	"invalid-indicator-name": "<strong>Ошибка:</strong> Атрибут <code>name</code> индикаторов состояния страницы не должен быть пустым.",
