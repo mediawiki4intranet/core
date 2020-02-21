@@ -3361,7 +3361,7 @@
 	"hebrew-calendar-m10-gen": "Tamuz",
 	"hebrew-calendar-m11-gen": "Av",
 	"hebrew-calendar-m12-gen": "Elul",
-	"signature": "[[{{ns:user}}:$1|$2]] ([[{{ns:user_talk}}:$1|talk]])",
+	"signature": "[[{{ns:user}}:$1|$2]]",
 	"signature-anon": "[[{{#special:Contributions}}/$1|$2]]",
 	"timezone-utc": "UTC",
 	"duplicate-defaultsort": "<strong>Warning:</strong> Default sort key \"$2\" overrides earlier default sort key \"$1\".",
